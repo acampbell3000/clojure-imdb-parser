@@ -7,13 +7,6 @@
     (import (java.io ByteArrayInputStream))
     (import (java.net URLEncoder)))
 
-; Remember to delete me...
-(defstruct work :winner :title :author)
-(defstruct category :award :books :year)
-
-(defstruct media :title :href :classification :genre :release-date :description :long-description
-    :production-company)
-
 (def chrome-agent
     "Mozilla/5.0 (X11; CrOS i686 2268.111.0) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11")
 (def firefox-agent
@@ -31,9 +24,6 @@
 (def select-agent
     "Select a random agent from the supported list"
     (nth http-agents (rand-int (count http-agents))))
-;(def select-agent
-;    "Select the first agent from the supported list"
-;    (first http-agents))
 
 (defn encode-url
     "Ensure the provided URL is safe"
@@ -63,13 +53,6 @@
     [page-content]
     (first (html/select (parse-search-results page-content) [:td.result_text :a])))
 
-(defn construct-media-struct-from-results
-    "Convert search results into struct"
-    [media-from-search-results base-url]
-    (struct media
-        (ccstring/trim (first (:content media-from-search-results)))
-        (ccstring/trim (str base-url (:href (:attrs media-from-search-results))))))
-
 (defn parse-title-main-details
     "Selects the main information from the selected title page"
     [page-content]
@@ -92,8 +75,10 @@
     (if (not-empty article-divs)
         (let [tag-h2 (html/select article-divs [:h2])]
             (if (not-empty tag-h2)
+                
                 ; Check whether this is the right article
                 (if (= (first (:content (first tag-h2))) "Storyline")
+                    
                     ; Extract first paragraph
                     (let [storyline (html/select article-divs [:p])]
                         (if (not-empty storyline)
@@ -108,6 +93,7 @@
     (if (not-empty page-content)
         (let [extended-details (parse-title-extended-details page-content)]
             (if (not-empty extended-details)
+                
                 ; Check each sub article available in the extended titles section
                 (search-for-summary-within-article extended-details)))))
 
@@ -116,13 +102,16 @@
      production company section. The selects the first company from the available list."
     [article-div]
     (if (not-empty article-div)
+        
         ; Grab ALL text blocks for this particular article
         (let [txt-block (html/select article-div [:div.txt-block])]
             (if (not-empty txt-block)
                 (let [tag-h4 (html/select (first txt-block) [:h4])]
                     (if (not-empty tag-h4)
+                        
                         ; Check whether this is the right text block
                         (if (= (first (:content (first tag-h4))) "Production Co:")
+                            
                             ; Extract first company
                             (let [production-link (html/select (first txt-block) [:a])]
                                 (if (not-empty production-link)
@@ -137,133 +126,166 @@
     (if (not-empty page-content)
         (let [extended-details (parse-title-extended-details page-content)]
             (if (not-empty extended-details)
+                
                 ; Check each sub article available in the extended titles section
                 (let [company-search (search-for-company-within-article extended-details)]
                     (if (not-empty company-search)
+                        
                         ; Final tweak
                         (str "© " company-search)))))))
 
+(defn select-cast-crew-link
+    "Attempts to select the 'see more case / crew' link from the provided list."
+    [page-content]
+    (if (not-empty page-content)
+        (let [link (first page-content)]
+            (if (not-empty link)
+                ; Right anchor link?
+                (if (= (first (:content link)) "Full cast and crew")
+                    ; Match!
+                    (ccstring/trim (:href (:attrs link)))
+                    
+                    ; Next link
+                    (select-cast-crew-link (rest page-content)))))))
+        
+
+(defn parse-cast-crew-url
+    "Parse the provided page contents and looks for the link to the cast and crew page."
+    [page-content]
+    (if (not-empty page-content)
+        (let [extended-details (parse-title-extended-details page-content)]
+            (if (not-empty extended-details)
+                
+                ; Find ALL 'see-more' DIVs
+                (let [see-more-div (html/select extended-details [:div.see-more])]
+                    (if (not-empty see-more-div)
+                        
+                        ; Find each link inside this DIV
+                        (let [see-more-links (html/select see-more-div [:a])]
+                            
+                            ; Attempt grab correct link
+                            (select-cast-crew-link see-more-links))))))))
+
 (defn parse-genre
-    "Parse the provides sequence of anchor links and produce the genre string"
+    "Parse the provided sequence of anchor links and produce the genre string"
     [genre-sequence genre-string]
     (str genre-string
         (if (not-empty genre-sequence)
             (parse-genre (rest genre-sequence)
-                         (str (first (:content (first genre-sequence))) " ")) nil)))
+                         (str (first (:content (first genre-sequence))) " ")))))
+
 
 (defn construct-title
     "Construct a title string based on the provided parsed page content"
-    [page-main-content]
-    (if (not-empty page-main-content)
-        (if (not-empty (html/select page-main-content [:h1.header]))
-          (ccstring/trim (first (:content (first (html/select page-main-content [:h1.header]))))))))
+    [page-content]
+    (if (not-empty page-content)
+        (let [h1-header (html/select page-content [:h1.header])]
+            (if (not-empty h1-header)
+                (ccstring/trim (first (:content (first h1-header))))))))
 
 (defn construct-href
     "Construct a href string based on the provided parsed page content"
-    [page-main-content]
-    (if (not-empty page-main-content)
-        (if (not-empty (html/select page-main-content [:div.infobar :a]))
-            (last (re-find #"([a-zA-Z-_0-9/]+)/releaseinfo"
-                (ccstring/trim (:href (:attrs (last
-                    (html/select page-main-content [:div.infobar :a]))))))))))
+    [page-content]
+    (if (not-empty page-content)
+        
+        ; Select last infobar anchor link
+        (let [infobar-anchor (html/select page-content [:div.infobar :a])]
+            (if (not-empty infobar-anchor)
+                (last (re-find #"([a-zA-Z-_0-9/]+)/releaseinfo"
+                    (ccstring/trim (:href (:attrs (last infobar-anchor))))))))))
 
 (defn construct-classification
     "Construct a classification string based on the provided parsed page content"
-    [page-main-content]
-    (if (not-empty page-main-content)
-        (if (not-empty (html/select page-main-content [:div.infobar :span]))
-            (:title (:attrs (first (html/select page-main-content [:div.infobar :span])))))))
+    [page-content]
+    (if (not-empty page-content)
+        
+        ; Select title attribute from first infobar span element
+        (let [infobar-span (html/select page-content [:div.infobar :span])]
+            (if (not-empty infobar-span)
+                (:title (:attrs (first infobar-span)))))))
 
 (defn construct-genre
     "Construct a genre string based on the provided parsed page content"
-    [page-main-content]
-    (if (not-empty page-main-content)
-        (if (not-empty (html/select page-main-content [:div.infobar :a]))
-            (ccstring/trim (parse-genre
-                (drop-last (html/select page-main-content [:div.infobar :a])) "")))))
+    [page-content]
+    (if (not-empty page-content)
+        
+        ; Select title attribute from first infobar span element
+        (let [infobar-anchor (html/select page-content [:div.infobar :a])]
+            (if (not-empty infobar-anchor)
+                
+                ; Don't know why I drop the last??
+                (ccstring/trim (parse-genre (drop-last infobar-anchor) ""))))))
 
 (defn construct-release-date
     "Construct a release date string based on the provided parsed page content"
-    [page-main-content]
-    (if (not-empty page-main-content)
-        (if (not-empty (html/select page-main-content [:div.infobar :a]))
-            (ccstring/trim (nth (re-find #"([a-zA-Z0-9  ]+)(\(UK\))?"
-                (ccstring/trim (first (:content (last
-                    (html/select page-main-content [:div.infobar :a])))))) 1)))))
+    [page-content]
+    (if (not-empty page-content)
+        
+        ; Select title attribute from first infobar span element
+        (let [infobar-anchor (html/select page-content [:div.infobar :a])]
+            (if (not-empty infobar-anchor)
+                (ccstring/trim (nth (re-find #"([a-zA-Z0-9  ]+)(\(UK\))?"
+                    (ccstring/trim (first (:content (last infobar-anchor))))) 1))))))
 
 (defn construct-description
     "Construct a description string based on the provided parsed page content"
-    [page-main-content]
-    (if (not-empty page-main-content)
-        (if (not-empty (html/select page-main-content [:p]))
-            (ccstring/trim (first (:content (second (html/select page-main-content [:p]))))))))
+    [page-content]
+    (if (not-empty page-content)
+        
+        ; Select text from first non-empty paragraph
+        (let [paragraph (html/select page-content [:p])]
+            (if (not-empty paragraph)
+                (let [paragraph-content (:content (first paragraph))]
+                    (if (not-empty paragraph-content)
+                        (ccstring/trim (first paragraph-content))
+                        
+                        ; Next paragraph
+                        (construct-description (rest paragraph))))))))
 
 (defn construct-long-description
     "Construct a long description string based on the provided parsed page content"
-    [page-main-content]
-    (if (not-empty page-main-content)
-        (parse-summary page-main-content)))
+    [page-content]
+    (if (not-empty page-content)
+        (parse-summary page-content)))
 
 (defn construct-production-company
     "Construct a production company string based on the provided parsed page content"
-    [page-main-content]
-    (if (not-empty page-main-content)
-        (parse-production-company page-main-content)))
+    [page-content]
+    (if (not-empty page-content)
+        (parse-production-company page-content)))
 
-(defn update-media-struct
-    "Convert search results into populated struct"
-    [page-main-content media-struct]
-    (struct media
-        (if (not (nil? media-struct))
-            (if (not (nil? (media-struct :title)))
-                (media-struct :title) (construct-title page-main-content))
-            (construct-title page-main-content))
-        
-        (if (not (nil? media-struct))
-            (if (not (nil? (media-struct :href)))
-                (media-struct :href) (construct-href page-main-content))
-            (construct-href page-main-content))
-        
-        (if (not (nil? media-struct))
-            (if (not (nil? (media-struct :classification)))
-                (media-struct :classification) (construct-classification page-main-content))
-            (construct-classification page-main-content))
-        
-        (if (not (nil? media-struct))
-            (if (not (nil? (media-struct :genre)))
-                (media-struct :genre) (construct-genre page-main-content))
-            (construct-genre page-main-content))
-        
-        (if (not (nil? media-struct))
-            (if (not (nil? (media-struct :release-date)))
-                (media-struct :release-date) (construct-release-date page-main-content))
-            (construct-release-date page-main-content))
-        
-        (if (not (nil? media-struct))
-            (if (not (nil? (media-struct :description)))
-                (media-struct :description) (construct-description page-main-content))
-            (construct-description page-main-content))
-        
-        (if (not (nil? media-struct))
-            (if (not (nil? (media-struct :long-description)))
-                (media-struct :long-description) (construct-long-description page-main-content))
-            (construct-long-description page-main-content))
-        
-        (if (not (nil? media-struct))
-            (if (not (nil? (media-struct :production-company)))
-                (media-struct :production-company) (construct-production-company page-main-content))
-            (construct-production-company page-main-content))))
+(defn construct-cast
+    "Construct a cast string based on the provided parsed page content"
+    [page-content]
+    (if (not-empty page-content)
+        ; get
+        (str (construct-href page-content) (parse-cast-crew-url page-content))))
 
-; Testing...
-(def clash-url "http://www.imdb.com/title/tt0800320")
-(println "\n---Begin---")
-;(println "-" (update-media-struct (parse-title-main-details (body-resource clash-url)) nil))
-(println "-" (update-media-struct (body-resource clash-url) nil))
-(println "----End----")
+(defn construct-directors
+    "Construct a directors string based on the provided parsed page content"
+    [page-content]
+    (if (not-empty page-content)
+        (str (parse-cast-crew-url page-content))))
+
+(defn construct-producers
+    "Construct a producers string based on the provided parsed page content"
+    [page-content]
+    (if (not-empty page-content)
+        (str (parse-cast-crew-url page-content))))
+
+(defn construct-screen-writers
+    "Construct a screen-writers string based on the provided parsed page content"
+    [page-content]
+    (if (not-empty page-content)
+        (str (parse-cast-crew-url page-content))))
 
 ;////////////////////////////////////////////////////////////////
 
 ; Stuff were basing parser on:
+
+; Remember to delete me...
+(defstruct work :winner :title :author)
+(defstruct category :award :books :year)
 
 (defn select-popular-titles
     "Selects the popular titles from the search results"
