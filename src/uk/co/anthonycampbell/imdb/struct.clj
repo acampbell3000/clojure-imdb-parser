@@ -15,7 +15,17 @@
     :cast
     :directors
     :producers
-    :screen-writers)
+    :screen-writers
+    :tv-show
+    :tv-season
+    :tv-episode-id
+    :tv-episode-number
+    :tv-network
+    :track
+    :disk
+    :sort-title
+    :sort-cast
+    :sort-show)
 
 (defn construct-media-struct-from-results
     "Convert the provided search results page into a media struct"
