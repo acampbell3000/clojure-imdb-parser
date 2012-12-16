@@ -64,7 +64,7 @@
 
 (defn search-for-company-within-article
     "Searches through all of the provided article DIV's sub sections until we find the
-     production company section. The selects the first company from the available list."
+     production company section. Then selects the first company from the available list."
     [article-div]
     (if (not-empty article-div)
         

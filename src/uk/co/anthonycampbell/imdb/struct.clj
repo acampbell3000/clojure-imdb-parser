@@ -106,37 +106,42 @@
                 (construct-cast page-content))
             (construct-cast page-content))
         
-;        (if (not (nil? media-struct))
-;            (if (not-empty (media-struct :directors))
-;                (media-struct :directors)
-;                (construct-directors page-content))
-;            (construct-directors page-content))
-;        
-;        (if (not (nil? media-struct))
-;            (if (not-empty (media-struct :producers))
-;                (media-struct :producers)
-;                (construct-producers page-content))
-;            (construct-producers page-content))
-;        
-;        (if (not (nil? media-struct))
-;            (if (not-empty (media-struct :screen-writers))
-;                (media-struct :screen-writers)
-;                (construct-screen-writers page-content))
-;            (construct-screen-writers page-content))))
+        (if (not (nil? media-struct))
+            (if (not-empty (media-struct :directors))
+                (media-struct :directors)
+                (construct-directors page-content))
+            (construct-directors page-content))
+        
+        (if (not (nil? media-struct))
+            (if (not-empty (media-struct :producers))
+                (media-struct :producers)
+                (construct-producers page-content))
+            (construct-producers page-content))
+        
+        (if (not (nil? media-struct))
+            (if (not-empty (media-struct :screen-writers))
+                (media-struct :screen-writers)
+                (construct-screen-writers page-content))
+            (construct-screen-writers page-content))
 ))
 
 
 ; Testing...
 (println "\n---Begin---")
 
-(def clash-url "http://www.imdb.com/title/tt0800320")
+;(def clash-url "http://www.imdb.com/title/tt0800320")
+(def clash-url "http://www.imdb.com/title/tt0800320fullcredits#cast")
 
-(let [media-struct (update-media-struct (body-resource clash-url) nil)]
-    (if (not-empty media-struct)
-        (if (not-empty (:cast media-struct))
-            (println (str "http://www.imdb.com" (:cast media-struct)))
-            )))
+; Parse title page
+;(let [media-struct (update-media-struct (body-resource clash-url) nil)]
+;    (if (not-empty media-struct)
+;        (if (not-empty (:cast-href media-struct))
+;            ; Parse crew cast page
+;            (let [media-struct (update-media-struct (body-resource
+;                    (str "http://www.imdb.com" (:cast-href media-struct))) media-struct)]
+;                (println media-struct)))))
 
 ;(println "-" (update-media-struct (parse-title-main-details (body-resource clash-url)) nil))
 (println "\n-" (update-media-struct (body-resource clash-url) nil))
+
 (println "----End----")

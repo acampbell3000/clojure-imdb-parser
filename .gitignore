@@ -10,8 +10,9 @@ Servers
 .metadata
 
 # LEIN Project
-/target
-/lib
+bin/
+target/
+lib/
 *.jar
 *.class
 .lein-deps-sum
