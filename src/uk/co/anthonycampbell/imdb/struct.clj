@@ -1,11 +1,14 @@
 (ns uk.co.anthonycampbell.imdb.struct
+    (:use uk.co.anthonycampbell.imdb.request)
     (:use uk.co.anthonycampbell.imdb.parser)
+    (:use uk.co.anthonycampbell.imdb.cast-parser)
     (:require [clojure.contrib.string :as ccstring]))
 
 ; Define IMDB title struct
 (defstruct media
     :title
     :href
+    :cast-href
     :classification
     :genre
     :release-date
@@ -54,6 +57,12 @@
                 (media-struct :href)
                 (construct-href page-content))
             (construct-href page-content))
+        
+        (if (not (nil? media-struct))
+            (if (not-empty (media-struct :cast-href))
+                (media-struct :cast-href)
+                (construct-cast-href page-content))
+            (construct-cast-href page-content))
         
         (if (not (nil? media-struct))
             (if (not-empty (media-struct :classification))
@@ -116,9 +125,18 @@
 ;            (construct-screen-writers page-content))))
 ))
 
+
 ; Testing...
-(def clash-url "http://www.imdb.com/title/tt0800320")
 (println "\n---Begin---")
+
+(def clash-url "http://www.imdb.com/title/tt0800320")
+
+(let [media-struct (update-media-struct (body-resource clash-url) nil)]
+    (if (not-empty media-struct)
+        (if (not-empty (:cast media-struct))
+            (println (str "http://www.imdb.com" (:cast media-struct)))
+            )))
+
 ;(println "-" (update-media-struct (parse-title-main-details (body-resource clash-url)) nil))
-(println "-" (update-media-struct (body-resource clash-url) nil))
+(println "\n-" (update-media-struct (body-resource clash-url) nil))
 (println "----End----")

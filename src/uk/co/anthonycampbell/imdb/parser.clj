@@ -1,45 +1,10 @@
 (ns uk.co.anthonycampbell.imdb.parser
+    (:use uk.co.anthonycampbell.imdb.request)
+    (:require [clj-http.client :as client])
     (:require [net.cgrand.enlive-html :as html])
     (:require [net.cgrand.xml :as xml])
-    (:require [clj-http.client :as client])
     (:require [clojure.string])
-    (:require [clojure.contrib.string :as ccstring])
-    (import (java.io ByteArrayInputStream))
-    (import (java.net URLEncoder)))
-
-(def chrome-agent
-    "Mozilla/5.0 (X11; CrOS i686 2268.111.0) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11")
-(def firefox-agent
-    "Mozilla/5.0 (Windows NT 6.1; rv:15.0) Gecko/20120716 Firefox/15.0a2")
-(def safari-agent
-    "Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5355d Safari/8536.25")
-(def ie10-agent
-    "Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; Trident/6.0)")
-(def ie9-agent
-    "Mozilla/5.0 (Windows; U; MSIE 9.0; Windows NT 9.0; en-US)")
-(def ie7-agent
-    "Mozilla/5.0 (Windows; U; MSIE 7.0; Windows NT 6.0; en-US)")
-(def http-agents (list chrome-agent firefox-agent safari-agent, ie7-agent, ie9-agent, ie10-agent))
-
-(def select-agent
-    "Select a random agent from the supported list"
-    (nth http-agents (rand-int (count http-agents))))
-
-(defn encode-url
-    "Ensure the provided URL is safe"
-    [url]
-    (URLEncoder/encode url))
-
-(defn fetch-body
-    "Using the CLJ HTTP client - send the HTTP request."
-    [url]
-    (:body (client/get url { :headers { "User-Agent" select-agent }})))
-
-(defn body-resource
-    "Retrieves the web page specified by the url and makes an html-resource
-     out of it which is used by enlive."
-    [url]
-    (html/html-resource (ByteArrayInputStream. (.getBytes (fetch-body url)))))
+    (:require [clojure.contrib.string :as ccstring]))
 
 (defn parse-search-results
     "Selects the search result content from the query result"
@@ -194,6 +159,12 @@
                 (last (re-find #"([a-zA-Z-_0-9/]+)/releaseinfo"
                     (ccstring/trim (:href (:attrs (last infobar-anchor))))))))))
 
+(defn construct-cast-href
+    "Construct a href string for the provided page's cast summary"
+    [page-content]
+    (if (not-empty page-content)
+        (str (construct-href page-content) (parse-cast-crew-url page-content))))
+
 (defn construct-classification
     "Construct a classification string based on the provided parsed page content"
     [page-content]
@@ -254,90 +225,63 @@
     (if (not-empty page-content)
         (parse-production-company page-content)))
 
-(defn construct-cast
-    "Construct a cast string based on the provided parsed page content"
-    [page-content]
-    (if (not-empty page-content)
-        ; get
-        (str (construct-href page-content) (parse-cast-crew-url page-content))))
-
-(defn construct-directors
-    "Construct a directors string based on the provided parsed page content"
-    [page-content]
-    (if (not-empty page-content)
-        (str (parse-cast-crew-url page-content))))
-
-(defn construct-producers
-    "Construct a producers string based on the provided parsed page content"
-    [page-content]
-    (if (not-empty page-content)
-        (str (parse-cast-crew-url page-content))))
-
-(defn construct-screen-writers
-    "Construct a screen-writers string based on the provided parsed page content"
-    [page-content]
-    (if (not-empty page-content)
-        (str (parse-cast-crew-url page-content))))
-
 ;////////////////////////////////////////////////////////////////
 
 ; Stuff were basing parser on:
 
 ; Remember to delete me...
-(defstruct work :winner :title :author)
-(defstruct category :award :books :year)
 
-(defn select-popular-titles
-    "Selects the popular titles from the search results"
-    [page-content]
-    (html/select page-content
-        [:html :body :div#wrapper :div#root :layer :div#pagecontent :div :div#content-2-wide :div#main :table
-        (html/nth-of-type 1)]))
-
-(defn split-author-publisher-str
-    "Selects the popular titles from the search results"
-    [authpubstr]
-    (clojure.string/split (ccstring/replace-re #"^," ""
-        (ccstring/replace-str "by " ""
-            (ccstring/replace-str " by " "" authpubstr))) #"\[|\(" ))
-
-(defn parse-author
-    "Grabs the author's name"
-    [authstr]
-    (ccstring/trim (first (split-author-publisher-str authstr))))
-
-(defn create-work-struct
-    [work-data]
-    (if (not (nil? (first (:content (first (:content work-data)))))) 
-          (struct work (if (not (nil? (:attrs work-data))) (:class (:attrs work-data))) 
-              (ccstring/replace-str "\"" ""
-                  (ccstring/trim (first (:content (first (:content work-data))))))  
-                  (parse-author (second (:content work-data))))))
-
-(defn get-book-info 
-    "Formats the book data so that each book has a title which contais 
-     the book's title, author, and sometimes the publisher.  I also shows if
-     the book was a winner"
-    [nominees]
-    (map create-work-struct nominees))
-
-(defn parse-award-page 
-    "Takes the page data retrieved and formats it in such away that each 
-     hugo award group is stored with ((award title) (winner and nominees))"
-    [page-content]
-    (partition 2 
-        (interleave (split-at 4 
-            (html/select page-content #{[:div#content :p] [:p html/first-child]})) 
-            (map :content (html/select page-content #{[:div#content :ul ] })))))
-
-(defn get-awards-per-year 
-    "Retrieves the awards page, parses out the categories, 
-     winners and nominees and then formats the data so 
-     that it can manipulated more easily."
-    [url]
-    (let [page-content (body-resource url)
-        year (apply str (:content 
-            (first (html/select page-content #{[:div#content :h2]}))))]
-            (map #(struct category (apply str (first %)) 
-                (get-book-info (rest (second %))) year)
-                (parse-award-page page-content))))
+;(defn select-popular-titles
+;    "Selects the popular titles from the search results"
+;    [page-content]
+;    (html/select page-content
+;        [:html :body :div#wrapper :div#root :layer :div#pagecontent :div :div#content-2-wide :div#main :table
+;        (html/nth-of-type 1)]))
+;
+;(defn split-author-publisher-str
+;    "Selects the popular titles from the search results"
+;    [authpubstr]
+;    (clojure.string/split (ccstring/replace-re #"^," ""
+;        (ccstring/replace-str "by " ""
+;            (ccstring/replace-str " by " "" authpubstr))) #"\[|\(" ))
+;
+;(defn parse-author
+;    "Grabs the author's name"
+;    [authstr]
+;    (ccstring/trim (first (split-author-publisher-str authstr))))
+;
+;(defn create-work-struct
+;    [work-data]
+;    (if (not (nil? (first (:content (first (:content work-data)))))) 
+;          (struct work (if (not (nil? (:attrs work-data))) (:class (:attrs work-data))) 
+;              (ccstring/replace-str "\"" ""
+;                  (ccstring/trim (first (:content (first (:content work-data))))))  
+;                  (parse-author (second (:content work-data))))))
+;
+;(defn get-book-info 
+;    "Formats the book data so that each book has a title which contais 
+;     the book's title, author, and sometimes the publisher.  I also shows if
+;     the book was a winner"
+;    [nominees]
+;    (map create-work-struct nominees))
+;
+;(defn parse-award-page 
+;    "Takes the page data retrieved and formats it in such away that each 
+;     hugo award group is stored with ((award title) (winner and nominees))"
+;    [page-content]
+;    (partition 2 
+;        (interleave (split-at 4 
+;            (html/select page-content #{[:div#content :p] [:p html/first-child]})) 
+;            (map :content (html/select page-content #{[:div#content :ul ] })))))
+;
+;(defn get-awards-per-year 
+;    "Retrieves the awards page, parses out the categories, 
+;     winners and nominees and then formats the data so 
+;     that it can manipulated more easily."
+;    [url]
+;    (let [page-content (body-resource url)
+;        year (apply str (:content 
+;            (first (html/select page-content #{[:div#content :h2]}))))]
+;            (map #(struct category (apply str (first %)) 
+;                (get-book-info (rest (second %))) year)
+;                (parse-award-page page-content))))
