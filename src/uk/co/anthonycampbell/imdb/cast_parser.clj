@@ -31,17 +31,35 @@
                     ; Move onto next article
                     (search-for-directors (rest cast-tables)))))))
 
+(defn search-for-screen-writers
+    "Searches through all of the provided cast tables until we find the
+     writing credits sub section."
+    [cast-tables]
+    ;(println cast-tables)
+    
+    (if (not-empty cast-tables)
+        (let [table-links (html/select (first cast-tables) [:a])]
+            (if (not-empty table-links)
+                
+                ; Check whether this is the right article
+                (if (= (first (:content (first table-links))) "Writing credits")
+                    ; Return directors
+                    (rest table-links)
+                    
+                    ; Move onto next article
+                    (search-for-screen-writers (rest cast-tables)))))))
+
 (defn construct-cast
     "Construct a cast string based on the provided parsed page content"
     [page-content]
     (if (not-empty page-content)
-        (str "")))
+        nil))
 
 (defn construct-directors
     "Construct a directors string based on the provided parsed page content"
     [page-content]
     (if (not-empty page-content)
-        ; Parse list of directorss
+        ; Parse list of directors
         (loop [director-string ""
                director-list (search-for-directors (parse-cast-page page-content))]
             (if (not-empty director-list)
@@ -56,10 +74,30 @@
     "Construct a producers string based on the provided parsed page content"
     [page-content]
     (if (not-empty page-content)
-        (str "")))
+        nil))
 
 (defn construct-screen-writers
     "Construct a screen-writers string based on the provided parsed page content"
     [page-content]
+    (println (search-for-screen-writers (parse-cast-page page-content)))
+    
     (if (not-empty page-content)
-        (str "")))
+        ; Parse list of screen writers
+        (loop [screen-writer-set (sorted-set)
+               screen-writer-list (search-for-screen-writers (parse-cast-page page-content))]
+            (if (not-empty screen-writer-list)
+                
+                ; Recurrsively push screen writers into set to de-dupe items
+                (recur (conj screen-writer-set (first (:content (first screen-writer-list))))
+                    (rest screen-writer-list))
+                
+                (loop [screen-writer-string ""
+                       screen-writer-set (disj screen-writer-set "WGA")]
+                    (if (not-empty screen-writer-set)
+                        
+                        ; Compile screen writer string
+                        (recur (str screen-writer-string ", " (first screen-writer-set))
+                            (rest screen-writer-set))
+                        
+                        ; Final clean up
+                        (ccstring/trim (subs screen-writer-string 2))))))))
