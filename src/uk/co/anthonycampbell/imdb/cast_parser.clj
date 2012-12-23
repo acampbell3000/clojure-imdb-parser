@@ -17,8 +17,6 @@
     "Searches through all of the provided cast tables until we find the
      director sub section."
     [cast-tables]
-    ;(println cast-tables)
-    
     (if (not-empty cast-tables)
         (let [table-links (html/select (first cast-tables) [:a])]
             (if (not-empty table-links)
@@ -30,6 +28,22 @@
                     
                     ; Move onto next article
                     (search-for-directors (rest cast-tables)))))))
+
+(defn search-for-producers
+    "Searches through all of the provided cast tables until we find the
+     producer sub section."
+    [cast-tables]
+    (if (not-empty cast-tables)
+        (let [table-links (html/select (first cast-tables) [:a])]
+            (if (not-empty table-links)
+                
+                ; Check whether this is the right article
+                (if (= (first (:content (first table-links))) "Produced by")
+                    ; Return producers
+                    (rest (html/select (first cast-tables) [:tr]))
+                    
+                    ; Move onto next article
+                    (search-for-producers (rest cast-tables)))))))
 
 (defn search-for-screen-writers
     "Searches through all of the provided cast tables until we find the
@@ -73,14 +87,41 @@
 (defn construct-producers
     "Construct a producers string based on the provided parsed page content"
     [page-content]
+    (println (search-for-producers (parse-cast-page page-content)))
+    
     (if (not-empty page-content)
-        nil))
+        ; Parse list of producers
+        (loop [producer-string ""
+               producer-list (search-for-producers (parse-cast-page page-content))]
+            (if (not-empty producer-list)
+                
+                ; Recurrsively compile producer string
+                (recur (str producer-string 
+                    (let [producers (html/select (first producer-list) [:a])]
+                        (if (not-empty producers)
+                            
+                            ; If we have a type to work with lets validate
+                            (if (> (count producers) 1)
+                                (let [producer (first (:content (first producers)))
+                                      producer-type (first (:content (second producers)))]
+                                    
+                                    ; Only grab if type is executive or producer
+                                    (if (= (ccstring/lower-case producer-type) "producer")
+                                        (str ", " producer)
+                                        
+                                        (if (= (ccstring/lower-case producer-type) "executive producer")
+                                            (str ", " producer)
+                                            "")))
+                                        
+                                (first (:content (first producers)))))))
+                    (rest producer-list))
+                
+                ; Final clean up
+                (ccstring/trim (subs producer-string 2))))))
 
 (defn construct-screen-writers
     "Construct a screen-writers string based on the provided parsed page content"
     [page-content]
-    (println (search-for-screen-writers (parse-cast-page page-content)))
-    
     (if (not-empty page-content)
         ; Parse list of screen writers
         (loop [screen-writer-set (sorted-set)
