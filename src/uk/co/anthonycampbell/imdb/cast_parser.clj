@@ -13,6 +13,15 @@
         [:html :body :div#wrapper :div#root :div#pagecontent :div#tn15 :div#tn15main :div#tn15content
          :table]))
 
+(defn search-for-cast
+    "Searches through all of the provided cast tables until we find the
+     cast sub section."
+    [cast-tables]
+    (if (not-empty cast-tables)
+        (let [cast-table (html/select cast-tables [:table.cast])]
+            (if (not-empty cast-table)
+                cast-table))))
+
 (defn search-for-directors
     "Searches through all of the provided cast tables until we find the
      director sub section."
@@ -49,8 +58,6 @@
     "Searches through all of the provided cast tables until we find the
      writing credits sub section."
     [cast-tables]
-    ;(println cast-tables)
-    
     (if (not-empty cast-tables)
         (let [table-links (html/select (first cast-tables) [:a])]
             (if (not-empty table-links)
@@ -67,7 +74,39 @@
     "Construct a cast string based on the provided parsed page content"
     [page-content]
     (if (not-empty page-content)
-        nil))
+        (let [cast-table (search-for-cast (parse-cast-page page-content))]
+            ; Parse cast list
+            (loop [cast-string ""
+                   cast-rows (html/select cast-table [:tr])]
+                (if (not-empty cast-rows)
+                    ; Recurrsively compile cast string
+                    (recur (str cast-string
+                        (let [cast-name (html/select (first cast-rows) [:td.nm])
+                              cast-character (html/select (first cast-rows) [:td.char])]
+                            
+                            ; Only persist if we're dealing with a 'real' character
+                            (if (not-empty cast-character)
+                                (let [cast-name-value (first (:content (first cast-name)))
+                                      cast-character-value (:tag (first (:content (first cast-character))))]
+                                    (if (= (str cast-character-value) ":a")
+                                        (if (not-empty cast-name-value)
+                                            (str ", " (first (:content cast-name-value)))))))))
+                        ; Next row
+                        (let [cast-character (html/select (first cast-rows) [:td.char])]
+                            (if (not-empty cast-character)
+                                (let [cast-character-value (:tag (first (:content (first cast-character))))]
+                                    
+                                    ; We don't want too many cast entries
+                                    (if (true)
+                                        
+                                        ; Lets only continue if we're still dealing with 'real' characters
+                                        (if (= (str cast-character-value) ":a")
+                                            (rest cast-rows)
+                                            
+                                            )))))
+                        
+                    ; Final clean up
+                    (ccstring/trim (subs cast-string 2)))))))
 
 (defn construct-directors
     "Construct a directors string based on the provided parsed page content"
@@ -87,8 +126,6 @@
 (defn construct-producers
     "Construct a producers string based on the provided parsed page content"
     [page-content]
-    (println (search-for-producers (parse-cast-page page-content)))
-    
     (if (not-empty page-content)
         ; Parse list of producers
         (loop [producer-string ""
