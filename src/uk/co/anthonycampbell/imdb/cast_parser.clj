@@ -76,11 +76,11 @@
     (if (not-empty page-content)
         (let [cast-table (search-for-cast (parse-cast-page page-content))]
             ; Parse cast list
-            (loop [cast-string ""
+            (loop [cast-list []
                    cast-rows (html/select cast-table [:tr])]
                 (if (not-empty cast-rows)
-                    ; Recurrsively compile cast string
-                    (recur (str cast-string
+                    ; Recurrsively compile cast list
+                    (recur (concat cast-list
                         (let [cast-name (html/select (first cast-rows) [:td.nm])
                               cast-character (html/select (first cast-rows) [:td.char])]
                             
@@ -90,23 +90,31 @@
                                       cast-character-value (:tag (first (:content (first cast-character))))]
                                     (if (= (str cast-character-value) ":a")
                                         (if (not-empty cast-name-value)
-                                            (str ", " (first (:content cast-name-value)))))))))
+                                            [(first (:content cast-name-value))]))))))
                         ; Next row
                         (let [cast-character (html/select (first cast-rows) [:td.char])]
                             (if (not-empty cast-character)
                                 (let [cast-character-value (:tag (first (:content (first cast-character))))]
                                     
                                     ; We don't want too many cast entries
-                                    (if (true)
+                                    (if (<= (count cast-list) 20)
                                         
                                         ; Lets only continue if we're still dealing with 'real' characters
                                         (if (= (str cast-character-value) ":a")
-                                            (rest cast-rows)
-                                            
-                                            )))))
+                                            (rest cast-rows)))))))
                         
-                    ; Final clean up
-                    (ccstring/trim (subs cast-string 2)))))))
+                ; Convert list to string
+                (loop [cast-string ""
+                       cast-list-temp cast-list]
+                    (if (not-empty cast-list-temp)
+                        ; Recurrsively compile cast string
+                        (recur (str cast-string (str ", " (first cast-list-temp)))
+                            ; Next element
+                            (rest cast-list-temp))
+                        
+                        ; Finaly clean up
+                        (if (not-empty cast-string)
+                            (ccstring/trim (subs cast-string 2))))))))))
 
 (defn construct-directors
     "Construct a directors string based on the provided parsed page content"
@@ -121,7 +129,8 @@
                     (rest director-list))
                 
                 ; Final clean up
-                (ccstring/trim (subs director-string 2))))))
+                (if (not-empty director-string)
+                    (ccstring/trim (subs director-string 2)))))))
 
 (defn construct-producers
     "Construct a producers string based on the provided parsed page content"
@@ -154,7 +163,8 @@
                     (rest producer-list))
                 
                 ; Final clean up
-                (ccstring/trim (subs producer-string 2))))))
+                (if (not-empty producer-string)
+                    (ccstring/trim (subs producer-string 2)))))))
 
 (defn construct-screen-writers
     "Construct a screen-writers string based on the provided parsed page content"
@@ -178,4 +188,5 @@
                             (rest screen-writer-set))
                         
                         ; Final clean up
-                        (ccstring/trim (subs screen-writer-string 2))))))))
+                        (if (not-empty screen-writer-string)
+                            (ccstring/trim (subs screen-writer-string 2)))))))))
