@@ -139,7 +139,6 @@
             (parse-genre (rest genre-sequence)
                          (str (first (:content (first genre-sequence))) " ")))))
 
-
 (defn construct-title
     "Construct a title string based on the provided parsed page content"
     [page-content]

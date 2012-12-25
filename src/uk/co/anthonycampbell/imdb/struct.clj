@@ -122,26 +122,4 @@
             (if (not-empty (media-struct :screen-writers))
                 (media-struct :screen-writers)
                 (construct-screen-writers page-content))
-            (construct-screen-writers page-content))
-))
-
-
-; Testing...
-(println "\n---Begin---")
-
-;(def clash-url "http://www.imdb.com/title/tt0800320")
-(def clash-url "http://www.imdb.com/title/tt0800320fullcredits#cast")
-
-; Parse title page
-;(let [media-struct (update-media-struct (body-resource clash-url) nil)]
-;    (if (not-empty media-struct)
-;        (if (not-empty (:cast-href media-struct))
-;            ; Parse crew cast page
-;            (let [media-struct (update-media-struct (body-resource
-;                    (str "http://www.imdb.com" (:cast-href media-struct))) media-struct)]
-;                (println media-struct)))))
-
-;(println "-" (update-media-struct (parse-title-main-details (body-resource clash-url)) nil))
-(println "\n-" (update-media-struct (body-resource clash-url) nil))
-
-(println "----End----")
+            (construct-screen-writers page-content))))

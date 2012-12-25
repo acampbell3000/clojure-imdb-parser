@@ -105,12 +105,12 @@
                         
                 ; Convert list to string
                 (loop [cast-string ""
-                       cast-list-temp cast-list]
-                    (if (not-empty cast-list-temp)
+                       & cast-list]
+                    (if (not-empty cast-list)
                         ; Recurrsively compile cast string
-                        (recur (str cast-string (str ", " (first cast-list-temp)))
+                        (recur (str cast-string (str ", " (first cast-list)))
                             ; Next element
-                            (rest cast-list-temp))
+                            (rest cast-list))
                         
                         ; Finaly clean up
                         (if (not-empty cast-string)
