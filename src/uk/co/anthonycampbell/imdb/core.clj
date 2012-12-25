@@ -54,38 +54,42 @@
                         ; Parse cast page
                         (update-media-struct cast-page-content, media-struct)))))))
 
-(defn -main
+(defn parse
     "Runs the parsers and outputs a media struct. If specified the struct
      will also be written to an output file"
+    [query-term output-file]
+    
+    ; Validate
+    (if (not-empty query-term)
+        
+        ; Perform search
+        (let [search-response (perform-search query-term)]
+            
+            ; Parse title page
+            (if (not-empty search-response)
+                (let [media-struct (parse-title search-response)]
+                    
+                    ; Parse cast page
+                    (if (not-empty media-struct)
+                        (let [media-struct (parse-cast media-struct)]
+                            
+                            ; Determine output
+                            (if (not-empty output-file)
+                                
+                                ; Finally write to file
+                                (write-to-file media-struct output-file))
+                            
+                            media-struct)))))))
+
+(defn -main
     [& args]
     (println "--- Begin ---\n")
     
-    ; Validate
     (if (not-empty args)
-        (let [query-term (first args)]
-            (if (not-empty query-term)
-                
-                ; Perform search
-                (let [search-response (perform-search query-term)]
-                    
-                    ; Parse title page
-                    (if (not-empty search-response)
-                        (let [media-struct (parse-title search-response)]
-                            
-                            ; Parse cast page
-                            (if (not-empty media-struct)
-                                (let [media-struct (parse-cast media-struct)]
-                                    
-                                    ; Determine output
-                                    (let [output-file (second args)]
-                                        (if (not-empty output-file)
-                                            
-                                            ; Finally write to file
-                                            (write-to-file media-struct output-file)))
-                                    
-                                    (println media-struct)))))))))
+        (let [complete-media-struct (parse (first args) (second args))]
+            (println complete-media-struct)))
     
     (println "\n---- End ----"))
 
 ; Testing...
-(-main "Clash of the titans")
+(-main "Clash of the titans" "output.txt")

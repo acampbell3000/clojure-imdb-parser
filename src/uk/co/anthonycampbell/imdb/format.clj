@@ -1,41 +1,45 @@
 (ns uk.co.anthonycampbell.imdb.format
-    (:use clojure.java.io))
-
-;(defn prep-for-file 
-;    "Formats the output so it can be written correctly to the output file"
-;    [rec]
-;    (apply str (map #(str
-;        (format-output (first
-;            (uk.co.anthonycampbell.imdb.parser/get-awards-per-year (:href %)))) "\n") rec)))
-
-;(defn -main [& args]
-;    "Runs the parser and then writes the results to the output file"
-;    (spit "film.txt" 
-;        (prep-for-file "")))
+    (:use clojure.java.io)
+    (:require [clojure.string]))
 
 (defn write-to-file
     "Formats and then writes the provided media struct to the specified output file"
     [media-struct output-file]
     
+    ; Validate
     (if (not (nil? media-struct))
         (if (not-empty output-file)
             
-            (with-open [file-writer (writer output-file)]
-                (.write file-writer "TEST!")
+            ; Open output file
+            (with-open [fw (writer output-file)]
+                (.write fw "\n")
                 
-                ))))
-
-(defn if-work-not-nil 
-    "Formats the book's line like so: title author and WINNER if it
-    won as long as work is not nil"
-    [work]
-    (str (if (not (nil? (:title work))) (str "\n\t" (:title work) " - " (:author work))) 
-        (if (not (nil? (:winner work))) (str " (WINNER)") ) ""))
-
-(defn format-nominees [works]
-    "formats all winners and nominees for a given award into one string"
-    (apply str (map if-work-not-nil works)))
-
-(defn format-output [novels]
-    "formats the award section including award title, winners and nominees"
-    (format "%s - Best Novel%s\n" (:year novels) (format-nominees (:books novels))))
+                (if (not-empty (:title media-struct))
+                    (.write fw (str (str "Title:\t\t\t\t\t" (:title media-struct)) "\n\n")))
+                (if (not-empty (:href media-struct))
+                    (.write fw (str (str "URL:\t\t\t\t\t" (:href media-struct)) "\n")))
+                (if (not-empty (:cast-href media-struct))
+                    (.write fw (str (str "Cast URL:\t\t\t\t" (:cast-href media-struct)) "\n")))
+                (if (not-empty (:classification media-struct))
+                    (.write fw (str (str "Classification:\t\t\t" (:classification media-struct)) "\n")))
+                (if (not-empty (:genre media-struct))
+                    (.write fw (str (str "Genre:\t\t\t\t\t" (:genre media-struct)) "\n")))
+                (if (not-empty (:release-date media-struct))
+                    (.write fw (str (str "Release Date:\t\t\t"
+                        (clojure.string/replace (:release-date media-struct) #"[  ]" " ")) "\n")))
+                (if (not-empty (:production-company media-struct))
+                    (.write fw (str (str "Production Company:\t\t" (:production-company media-struct)) "\n")))
+                (if (not-empty (:description media-struct))
+                    (.write fw (str (str "\nDescription:\t\t\t" (:description media-struct)) "\n")))
+                (if (not-empty (:long-description media-struct))
+                    (.write fw (str (str "\nLong Description:\t\t" (:long-description media-struct)) "\n")))
+                (if (not-empty (:cast media-struct))
+                    (.write fw (str (str "\nCast:\t\t\t\t\t" (:cast media-struct)) "\n")))
+                (if (not-empty (:directors media-struct))
+                    (.write fw (str (str "\nDirector:\t\t\t\t" (:directors media-struct)) "\n")))
+                (if (not-empty (:producers media-struct))
+                    (.write fw (str (str "\nProducers:\t\t\t\t" (:producers media-struct)) "\n")))
+                (if (not-empty (:screen-writers media-struct))
+                    (.write fw (str (str "\nScreen Writers:\t\t\t" (:screen-writers media-struct)) "\n")))
+                
+                (.write fw "\n")))))
