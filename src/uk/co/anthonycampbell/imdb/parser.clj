@@ -112,7 +112,6 @@
                     
                     ; Next link
                     (select-cast-crew-link (rest page-content)))))))
-        
 
 (defn parse-cast-crew-url
     "Parse the provided page contents and looks for the link to the cast and crew page."
@@ -120,7 +119,7 @@
     (if (not-empty page-content)
         (let [extended-details (parse-title-extended-details page-content)]
             (if (not-empty extended-details)
-                
+            
                 ; Find ALL 'see-more' DIVs
                 (let [see-more-div (html/select extended-details [:div.see-more])]
                     (if (not-empty see-more-div)
@@ -223,64 +222,3 @@
     [page-content]
     (if (not-empty page-content)
         (parse-production-company page-content)))
-
-;////////////////////////////////////////////////////////////////
-
-; Stuff were basing parser on:
-
-; Remember to delete me...
-
-;(defn select-popular-titles
-;    "Selects the popular titles from the search results"
-;    [page-content]
-;    (html/select page-content
-;        [:html :body :div#wrapper :div#root :layer :div#pagecontent :div :div#content-2-wide :div#main :table
-;        (html/nth-of-type 1)]))
-;
-;(defn split-author-publisher-str
-;    "Selects the popular titles from the search results"
-;    [authpubstr]
-;    (clojure.string/split (ccstring/replace-re #"^," ""
-;        (ccstring/replace-str "by " ""
-;            (ccstring/replace-str " by " "" authpubstr))) #"\[|\(" ))
-;
-;(defn parse-author
-;    "Grabs the author's name"
-;    [authstr]
-;    (ccstring/trim (first (split-author-publisher-str authstr))))
-;
-;(defn create-work-struct
-;    [work-data]
-;    (if (not (nil? (first (:content (first (:content work-data)))))) 
-;          (struct work (if (not (nil? (:attrs work-data))) (:class (:attrs work-data))) 
-;              (ccstring/replace-str "\"" ""
-;                  (ccstring/trim (first (:content (first (:content work-data))))))  
-;                  (parse-author (second (:content work-data))))))
-;
-;(defn get-book-info 
-;    "Formats the book data so that each book has a title which contais 
-;     the book's title, author, and sometimes the publisher.  I also shows if
-;     the book was a winner"
-;    [nominees]
-;    (map create-work-struct nominees))
-;
-;(defn parse-award-page 
-;    "Takes the page data retrieved and formats it in such away that each 
-;     hugo award group is stored with ((award title) (winner and nominees))"
-;    [page-content]
-;    (partition 2 
-;        (interleave (split-at 4 
-;            (html/select page-content #{[:div#content :p] [:p html/first-child]})) 
-;            (map :content (html/select page-content #{[:div#content :ul ] })))))
-;
-;(defn get-awards-per-year 
-;    "Retrieves the awards page, parses out the categories, 
-;     winners and nominees and then formats the data so 
-;     that it can manipulated more easily."
-;    [url]
-;    (let [page-content (body-resource url)
-;        year (apply str (:content 
-;            (first (html/select page-content #{[:div#content :h2]}))))]
-;            (map #(struct category (apply str (first %)) 
-;                (get-book-info (rest (second %))) year)
-;                (parse-award-page page-content))))

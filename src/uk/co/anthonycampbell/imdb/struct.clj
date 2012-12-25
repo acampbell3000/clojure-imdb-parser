@@ -43,7 +43,7 @@
 
 (defn update-media-struct
     "Populate media struct with provided page content. This function will NOT
-     override any existing properties."
+     override any existing properties"
     [page-content media-struct]
     (struct media
         (if (not (nil? media-struct))
@@ -123,3 +123,39 @@
                 (media-struct :screen-writers)
                 (construct-screen-writers page-content))
             (construct-screen-writers page-content))))
+
+(defn add-base-to-url
+    "Helper method to prepend the base URL if it's not available in the provided URL"
+    [url, base-url]
+    (if (not-empty url)
+        (if (not-empty base-url)
+            (let [base-url-length (count base-url)]
+                
+                ; Is URL short than base URL?
+                (if (>= (count url) base-url-length)
+                    
+                    ; Does URL start with base URL?
+                    (if (= (subs url 0 base-url-length) base-url)
+                        ; We're ALL good
+                        url
+                        (str base-url url))
+                    (str base-url url))))))
+
+(defn apply-base-url
+    "Ensure the href properties are prepended with the base URL"
+    [media-struct base-url]
+    (if (not (nil? media-struct))
+        (struct media
+            (media-struct :title)
+            (add-base-to-url (media-struct :href) base-url)
+            (add-base-to-url (media-struct :cast-href) base-url)
+            (media-struct :classification)
+            (media-struct :genre)
+            (media-struct :release-date)
+            (media-struct :description)
+            (media-struct :long-description)
+            (media-struct :production-company)
+            (media-struct :cast)
+            (media-struct :directors)
+            (media-struct :producers)
+            (media-struct :screen-writers))))

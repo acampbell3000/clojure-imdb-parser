@@ -1,5 +1,29 @@
 (ns uk.co.anthonycampbell.imdb.format
-    (:use uk.co.anthonycampbell.imdb.parser))
+    (:use clojure.java.io))
+
+;(defn prep-for-file 
+;    "Formats the output so it can be written correctly to the output file"
+;    [rec]
+;    (apply str (map #(str
+;        (format-output (first
+;            (uk.co.anthonycampbell.imdb.parser/get-awards-per-year (:href %)))) "\n") rec)))
+
+;(defn -main [& args]
+;    "Runs the parser and then writes the results to the output file"
+;    (spit "film.txt" 
+;        (prep-for-file "")))
+
+(defn write-to-file
+    "Formats and then writes the provided media struct to the specified output file"
+    [media-struct output-file]
+    
+    (if (not (nil? media-struct))
+        (if (not-empty output-file)
+            
+            (with-open [file-writer (writer output-file)]
+                (.write file-writer "TEST!")
+                
+                ))))
 
 (defn if-work-not-nil 
     "Formats the book's line like so: title author and WINNER if it

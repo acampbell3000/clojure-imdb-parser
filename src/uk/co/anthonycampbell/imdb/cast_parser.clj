@@ -73,8 +73,10 @@
 (defn construct-cast
     "Construct a cast string based on the provided parsed page content"
     [page-content]
+    
     (if (not-empty page-content)
         (let [cast-table (search-for-cast (parse-cast-page page-content))]
+            
             ; Parse cast list
             (loop [cast-list []
                    cast-rows (html/select cast-table [:tr])]
@@ -102,15 +104,15 @@
                                         ; Lets only continue if we're still dealing with 'real' characters
                                         (if (= (str cast-character-value) ":a")
                                             (rest cast-rows)))))))
-                        
+                
                 ; Convert list to string
                 (loop [cast-string ""
-                       & cast-list]
-                    (if (not-empty cast-list)
+                       cast-list-temp cast-list]
+                    (if (not-empty cast-list-temp)
                         ; Recurrsively compile cast string
-                        (recur (str cast-string (str ", " (first cast-list)))
+                        (recur (str cast-string (str ", " (first cast-list-temp)))
                             ; Next element
-                            (rest cast-list))
+                            (rest cast-list-temp))
                         
                         ; Finaly clean up
                         (if (not-empty cast-string)

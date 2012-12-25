@@ -3,39 +3,11 @@
     (:use uk.co.anthonycampbell.imdb.request)
     (:use uk.co.anthonycampbell.imdb.struct)
     (:use uk.co.anthonycampbell.imdb.parser)
+    (:use uk.co.anthonycampbell.imdb.cast-parser)
     (:use uk.co.anthonycampbell.imdb.format))
 
 (def base-url "http://www.imdb.com")
 (def query-url (str base-url "/find?s=all&q="))
-
-;(defn prep-for-file 
-;    "Formats the output so it can be written correctly to the output file"
-;    [rec]
-;    (apply str (map #(str
-;        (format-output (first
-;            (uk.co.anthonycampbell.imdb.parser/get-awards-per-year (:href %)))) "\n") rec)))
-
-;(defn -main [& args]
-;    "Runs the parser and then writes the results to the output file"
-;    (spit "film.txt" 
-;        (prep-for-file "")))
-
-(defn add-base-to-url
-    "Helper method to prepend the base URL if it's not available in the provided URL"
-    [url]
-    (if (not-empty url)
-        (let [base-url-length (count base-url)]
-            
-            ; Is URL short than base URL?
-            (if (>= (count url) base-url-length)
-                
-                ; Does URL start with base URL?
-                (if (= (subs url 0 base-url-length))
-                    
-                    ; We're ALL good
-                    url
-                    (str base-url url))
-                (str base-url url)))))
 
 (defn perform-search
     "Takes the provided query string and performs a search for the title on IMDB"
@@ -53,11 +25,40 @@
                     (construct-media-struct-from-results
                           (select-media-from-results search-response) base-url))))))
 
+(defn parse-title
+    "Takes the provided search response and use the metadata to select and
+     parse the title page"
+    [search-response]
+    
+    ; Validate search result
+    (if (not-empty search-response)
+        (let [title-url (:href search-response)]
+            (if (not-empty title-url)
+                
+                ; Open and parse title page
+                (let [page-content (body-resource title-url)]
+                    (apply-base-url (update-media-struct page-content search-response) base-url))))))
+
+(defn parse-cast
+    "Takes the provided media struct and use the cast href to select and
+     parse the cast page"
+    [media-struct]
+    
+    ; Open cast page
+    (if (not-empty media-struct)
+        (let [cast-url (:cast-href media-struct)]
+            (if (not-empty cast-url)
+                (let [cast-page-content (body-resource cast-url)]
+                    (if (not-empty cast-page-content)
+                        
+                        ; Parse cast page
+                        (update-media-struct cast-page-content, media-struct)))))))
+
 (defn -main
-    "Runs the parser and then writes the results to the output file"
+    "Runs the parsers and outputs a media struct. If specified the struct
+     will also be written to an output file"
     [& args]
-    (println (str "Args: " (first args)))
-    (println "")
+    (println "--- Begin ---\n")
     
     ; Validate
     (if (not-empty args)
@@ -67,40 +68,24 @@
                 ; Perform search
                 (let [search-response (perform-search query-term)]
                     
-                    ; Validate search result
+                    ; Parse title page
                     (if (not-empty search-response)
-                        (let [title-url (add-base-to-url (:href search-response))]
-                            (if (not-empty (:href search-response))
-                                
-                                ; Open title page
-                                (let [page-content (body-resource title-url)]
+                        (let [media-struct (parse-title search-response)]
+                            
+                            ; Parse cast page
+                            (if (not-empty media-struct)
+                                (let [media-struct (parse-cast media-struct)]
                                     
-                                    ; Parse title
-                                    (let [media-struct (update-media-struct page-content
-                                            ; Parse title overview
-                                            (update-media-struct (parse-title-main-details
-                                                page-content) search-response))]
-                                        
-                                        ; Prepare cast URL
-                                        (if (not-empty (:cast-href media-struct))
-                                            (let [cast-url (add-base-to-url (:cast-href media-struct))]
-                                                
-                                                ; Open cast page
-                                                (let [cast-page-content (body-resource cast-url)]
-                                                    (update-media-struct cast-page-content, media-struct)
-        )))))))))))))
-
-;(def clash-url "http://www.imdb.com/title/tt0800320")
-;                http://www.imdb.com/title/tt0800320/?ref_=fn_al_tt_1
-(def clash-url  "http://www.imdb.com/title/tt0800320fullcredits#cast")
+                                    ; Determine output
+                                    (let [output-file (second args)]
+                                        (if (not-empty output-file)
+                                            
+                                            ; Finally write to file
+                                            (write-to-file media-struct output-file)))
+                                    
+                                    (println media-struct)))))))))
+    
+    (println "\n---- End ----"))
 
 ; Testing...
-(println "\n---Begin---")
-
-(println "")
-(println (-main "Clash of the titans"))
-(println "")
-;(println (update-media-struct (parse-title-main-details (body-resource clash-url)) nil))
-;(println "")
-
-(println "----End----")
+(-main "Clash of the titans")
