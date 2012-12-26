@@ -92,4 +92,4 @@
     (println "\n---- End ----"))
 
 ; Testing...
-(-main "Clash of the titans" "output.txt")
+;(-main "Clash of the titans" "output.txt")
