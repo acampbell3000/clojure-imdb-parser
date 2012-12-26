@@ -76,7 +76,6 @@
     
     ; Validate
     (if (not-empty query-term)
-        
         ; Perform search
         (let [search-response (perform-search query-term)]
             
@@ -100,13 +99,14 @@
     "Main method
     
      Example usage:
-         clojure-imdb-parser.jar "Title Name" output-file.txt
+         clojure-imdb-parser.jar \"Title Name\" output-file.txt
     "
     [& args]
     (println "\n--- Begin ---\n")
     
     (if (not-empty args)
         (let [complete-media-struct (parse (first args) (second args))]
+            (println (str (str "Searching for: '", (first args)) "'\n"))
             (println complete-media-struct)))
     
     (println "\n---- End ----"))

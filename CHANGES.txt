@@ -1,9 +1,17 @@
-VERSION: 0.0.1
+VERSION: 0.0.2
 
 Known issues:
 - N/A.
 
 Potential improvements:
-- TBA.
+- N/A.
+
+Release notes 0.0.2 (26th December 2012)
+---------------------------------------
+
+- Introduce python wrapper script for lazy people.
+- Provide a little more output.
+- Removed test code from main source.
+- Added license to ALL source files.
 
 Initial release: 0.0.1

@@ -48,6 +48,8 @@
             
             ; Open output file
             (with-open [fw (writer output-file)]
+                (println (str "Writing output to file: ", output-file))
+                
                 (.write fw "\n")
                 
                 (if (not-empty (:title media-struct))
