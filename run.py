@@ -69,6 +69,7 @@ def main():
             sys.exit(0)
 
     try:
+        # Determine newest parser
         process = subprocess.Popen(["ls -t ./release | grep \"clojure-imdb-parser.*.jar\" | head -n 1"],
             stdout=subprocess.PIPE, shell=True)
         latest_jar, stderr = process.communicate()
@@ -91,13 +92,14 @@ def main():
         print "    " + latest_jar + "\n"
 
         try:
+            # Execute the parser
             process = subprocess.Popen(["java", "-jar", latest_jar, query_term, output_file],
                 stdout=subprocess.PIPE)
             output, stderr = process.communicate()
             process.wait()
 
         except exceptions.Exception as error:
-            print "Unable to find latest clojure-imdb-parser.jar:\n"
+            print "Unable to execute clojure-imdb-parser!\n"
             print "    " + str(error)
             sys.exit(1)
 
