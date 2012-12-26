@@ -1,0 +1,9 @@
+VERSION: 0.0.1
+
+Known issues:
+- N/A.
+
+Potential improvements:
+- TBA.
+
+Initial release: 0.0.1

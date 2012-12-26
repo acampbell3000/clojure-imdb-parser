@@ -1,6 +1,27 @@
 (ns uk.co.anthonycampbell.imdb.format
     (:use clojure.java.io)
-    (:require [clojure.string]))
+    (:require [clojure.string])
+    (import (java.util Date))
+    (import (java.text SimpleDateFormat)))
+
+(def genres []
+    )
+
+(defn format-date
+    "Formats the provided date string into a simple shortdate"
+    [date-string]
+    
+    (if (not-empty date-string)
+        (let [date (. (SimpleDateFormat. "dd MMM yyyy") parse date-string)]
+            (. (SimpleDateFormat. "yyyy-MM-dd") format date))))
+
+(defn format-genre
+    "Formats the provided genre string into the iTunes compatable genre"
+    [genre-string]
+    
+    (if (not-empty genre-string)
+        genre-string
+        ))
 
 (defn write-to-file
     "Formats and then writes the provided media struct to the specified output file"
@@ -23,10 +44,11 @@
                 (if (not-empty (:classification media-struct))
                     (.write fw (str (str "Classification:\t\t\t" (:classification media-struct)) "\n")))
                 (if (not-empty (:genre media-struct))
-                    (.write fw (str (str "Genre:\t\t\t\t\t" (:genre media-struct)) "\n")))
+                    (.write fw (str (str "Genre:\t\t\t\t\t"
+                        (format-genre (:genre media-struct))) "\n")))
                 (if (not-empty (:release-date media-struct))
                     (.write fw (str (str "Release Date:\t\t\t"
-                        (clojure.string/replace (:release-date media-struct) #"[  ]" " ")) "\n")))
+                        (format-date (clojure.string/replace (:release-date media-struct) #"[  ]" " "))) "\n")))
                 (if (not-empty (:production-company media-struct))
                     (.write fw (str (str "Production Company:\t\t" (:production-company media-struct)) "\n")))
                 (if (not-empty (:description media-struct))
@@ -40,6 +62,4 @@
                 (if (not-empty (:producers media-struct))
                     (.write fw (str (str "\nProducers:\t\t\t\t" (:producers media-struct)) "\n")))
                 (if (not-empty (:screen-writers media-struct))
-                    (.write fw (str (str "\nScreen Writers:\t\t\t" (:screen-writers media-struct)) "\n")))
-                
-                (.write fw "\n")))))
+                    (.write fw (str (str "\nScreen Writers:\t\t\t" (:screen-writers media-struct)) "\n")))))))

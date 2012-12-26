@@ -83,7 +83,7 @@
 
 (defn -main
     [& args]
-    (println "--- Begin ---\n")
+    (println "\n--- Begin ---\n")
     
     (if (not-empty args)
         (let [complete-media-struct (parse (first args) (second args))]

@@ -20,7 +20,7 @@ language governing permissions and limitations under the License.
 
 ### Usage
 
->> TODO <<
+> TODO
 
 In addition, please look at the CHANGES.txt file to see update
 descriptions since the last release tag.
