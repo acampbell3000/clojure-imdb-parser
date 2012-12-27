@@ -31,6 +31,7 @@
     ; Prepare query string
     (if (not-empty query-term)
         (let [url (str query-url (encode-url query-term))]
+            (println (str (str "Searching for: '", query-term) "'\n"))
             
             ; Search for provided title
             (let [search-response (body-resource url)]
@@ -106,7 +107,8 @@
     
     (if (not-empty args)
         (let [complete-media-struct (parse (first args) (second args))]
-            (println (str (str "Searching for: '", (first args)) "'\n"))
             (println complete-media-struct)))
     
     (println "\n---- End ----"))
+
+(-main "Clash of the Titans" "output.txt")

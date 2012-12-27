@@ -4,14 +4,19 @@ Known issues:
 - N/A.
 
 Potential improvements:
-- N/A.
+- Format genre.
+- Usage documentation.
+- Contribute documentation.
 
-Release notes 0.0.2 (26th December 2012)
----------------------------------------
+Release notes 0.0.2 (27th December 2012)
+----------------------------------------
 
 - Introduce python wrapper script for lazy people.
 - Provide a little more output.
 - Removed test code from main source.
 - Added license to ALL source files.
+- Output format tweaks.
+- Format genre to make them more iTunes friendly.
+- Format genre tests.
 
-Initial release: 0.0.1
+Initial release: 0.0.1 (25th December 2012)

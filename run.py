@@ -33,7 +33,7 @@ _help = """
 
     Examples:
         __file__ -q "Clash of the Titans" -o output.txt
-        __file__ -query "Clash of the Titans" -output output.txt
+        __file__ --query "Clash of the Titans" --output output.txt
 """
 _help = _help.replace("__file__", __file__)
 
@@ -110,6 +110,7 @@ def main():
 
     # Where we at?
     print output
+
 
 # If we're being run directly
 if __name__ == "__main__":
