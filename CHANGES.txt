@@ -1,19 +1,20 @@
-VERSION: 0.0.2
+VERSION: 1.0.0
 
 Known issues:
 - N/A.
 
 Potential improvements:
-- Format genre.
+- Ability to perhaps just output JSON.
 - Usage documentation.
 - Contribute documentation.
 
-Release notes 0.0.2 (27th December 2012)
+Release notes 1.0.0 (TBA)
 ----------------------------------------
 
-- Introduce python wrapper script for lazy people.
+- Introduce Python wrapper script for lazy people.
 - Provide a little more output.
 - Removed test code from main source.
+- Removed test suite template.
 - Added license to ALL source files.
 - Output format tweaks.
 - Format genre to make them more iTunes friendly.
