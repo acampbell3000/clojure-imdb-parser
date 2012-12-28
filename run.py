@@ -46,14 +46,14 @@ def main():
     output_file = ""
     latest_jar = ""
 
-    print "\n    Clojure IMDB Parser\n"
+    print "\n    Clojure IMDB Parser"
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "q:o:?h", ["query=", "output=", "help"])
 
     except getopt.GetoptError as error:
         # Print help information and exit:
-        print "    " + str(error)
+        print "\n    " + str(error)
         print _help
         sys.exit(2)
 
@@ -68,6 +68,11 @@ def main():
             print _help
             sys.exit(0)
 
+    # Check we're good to go
+    if query_term == None or query_term == "":
+        print _help
+        sys.exit(2)        
+
     try:
         # Determine newest parser
         process = subprocess.Popen(["ls -t ./release | grep \"clojure-imdb-parser.*.jar\" | head -n 1"],
@@ -76,8 +81,8 @@ def main():
         process.wait()
 
     except exceptions.Exception as error:
-        print "Unable to find latest clojure-imdb-parser.jar:\n"
-        print "    " + str(error)
+        print "\nUnable to find latest clojure-imdb-parser.jar:"
+        print "\n    " + str(error)
         sys.exit(1)
 
     # Validate
@@ -88,8 +93,8 @@ def main():
         pattern = re.compile(r'\n')
         latest_jar = pattern.sub(" ", latest_jar).strip()
 
-        print "Latest clojure-imdb-parser.jar:\n"
-        print "    " + latest_jar + "\n"
+        print "\n    Latest clojure-imdb-parser.jar:"
+        print "\n    " + latest_jar + "\n"
 
         try:
             # Execute the parser
@@ -99,12 +104,12 @@ def main():
             process.wait()
 
         except exceptions.Exception as error:
-            print "Unable to execute clojure-imdb-parser!\n"
-            print "    " + str(error)
+            print "\n    Unable to execute clojure-imdb-parser!"
+            print "\n    " + str(error)
             sys.exit(1)
 
     else:
-        print "Unable to find latest clojure-imdb-parser.jar!\n"
+        print "\n    Unable to find latest clojure-imdb-parser.jar!"
         sys.exit(1)
 
 

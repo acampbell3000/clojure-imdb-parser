@@ -110,5 +110,3 @@
             (println complete-media-struct)))
     
     (println "\n---- End ----"))
-
-(-main "Clash of the Titans" "output.txt")
