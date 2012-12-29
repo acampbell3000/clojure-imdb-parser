@@ -44,13 +44,13 @@
 (def test-title-tv-data
     ["Firefly"])
 
-;(deftest test-titles
-;  (do-integration-test test-title-data))
+(deftest test-titles
+  (do-integration-test test-title-data))
 
 (deftest test-generic-titles
     (do-integration-test test-generic-title-data))
 
-;(deftest test-tv-titles
-;    (do-integration-test test-title-tv-data))
+(deftest test-tv-titles
+    (do-integration-test test-title-tv-data))
 
 (run-tests)

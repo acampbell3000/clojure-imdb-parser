@@ -69,6 +69,25 @@
         [:html :body :div#wrapper :div#root :div#pagecontent :div#content-2-wide
          :div#maindetails_center_bottom :div.article]))
 
+(defn select-href-from-link
+    "Attempts to determine the title's URL from the available 'canonical' head link"
+    [head-links]
+    (if (not-empty head-links)
+        
+        ; One link at a time
+        (let [link (first head-links)]
+            (if (not-empty link)
+                
+                ; Right header link?
+                (let [link-rel (:rel (:attrs link))]
+                    (if (not-empty link-rel)
+                        (if (= link-rel "canonical")
+                            ; Match!
+                            (ccstring/trim (:href (:attrs link)))
+                            
+                            ; Next link
+                            (select-href-from-link (rest head-links)))))))))
+
 (defn search-for-summary-within-article
     "Searches through all of the provided article DIV's sub sections until we find the
      storyline section. The selects the first non-empty paragraph available."
@@ -187,17 +206,19 @@
     [page-content]
     (if (not-empty page-content)
         
-        ; Select last infobar anchor link
-        (let [infobar-anchor (html/select page-content [:div.infobar :a])]
-            (if (not-empty infobar-anchor)
-                (last (re-find #"([a-zA-Z-_0-9/]+)/releaseinfo"
-                    (ccstring/trim (:href (:attrs (last infobar-anchor))))))))))
+        ; Let's try and get href from 'canonical' link
+        (let [head-links (html/select page-content [:head :link])]
+            (if (not-empty head-links)
+                (select-href-from-link head-links)))))
 
 (defn construct-cast-href
     "Construct a href string for the provided page's cast summary"
     [page-content]
     (if (not-empty page-content)
-        (str (construct-href page-content) (parse-cast-crew-url page-content))))
+        (let [title-href (construct-href page-content)]
+            
+            (if (not-empty title-href)
+                (str title-href (parse-cast-crew-url page-content))))))
 
 (defn construct-classification
     "Construct a classification string based on the provided parsed page content"
