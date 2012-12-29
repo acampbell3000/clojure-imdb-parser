@@ -6,6 +6,7 @@ Dependencies:
 Potential improvements:
 - Update Python script to support Windows.
 - Ability to perhaps just output JSON.
+- Clearer direction of control in the parser namespace.
 - Apply length limit to short description (255 characters)
 
 Release notes 1.0.0 (TBA)

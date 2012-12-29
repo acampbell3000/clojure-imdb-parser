@@ -109,9 +109,9 @@
 (deftest check-construct-href
     (testing
         "Ensure we successfully construct a page reference string from parsed title page."
-        (is (= "/title/tt0800320"
+        (is (= "http://www.imdb.com/title/tt0800320/"
                (construct-href
-                   (parse-title-main-details (body-resource test-title-url)))))))
+                   (body-resource test-title-url))))))
 
 (deftest check-construct-release-date
     (testing
