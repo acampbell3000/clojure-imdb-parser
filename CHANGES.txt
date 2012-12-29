@@ -1,11 +1,11 @@
 VERSION: 1.0.0
 
-Known issues:
-- N/A.
+Dependencies:
+- JVM installed (developed against 1.6).
 
 Potential improvements:
+- Update Python script to support Windows.
 - Ability to perhaps just output JSON.
-- Usage documentation.
 - Contribute documentation.
 
 Release notes 1.0.0 (TBA)
@@ -19,5 +19,6 @@ Release notes 1.0.0 (TBA)
 - Output format tweaks.
 - Format genre to make them more iTunes friendly.
 - Format genre tests.
+- Usage documentation.
 
 Initial release: 0.0.1 (25th December 2012)

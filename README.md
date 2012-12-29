@@ -20,9 +20,34 @@ language governing permissions and limitations under the License.
 
 ### Usage
 
-> TODO
+First download the latest release jar:
 
-In addition, please look at the CHANGES.txt file to see update
+	https://github.com/acampbell3000/clojure-imdb-parser/tree/master/release
+
+If it's easier you can clone the whole project using git:
+
+	git clone https://github.com/acampbell3000/clojure-imdb-parser
+
+Once complete the release jars are standalone and can be executed on the
+command line as follows:
+
+	java -jar clojure-imdb-parser-[SOME VERSION]-standalone.jar
+		"Film Title" "/path/to/output-file.txt"
+
+As this can be a little cumbersome we also have a python script
+which wraps the execution of the latest jar.
+
+The python script can be found here:
+
+	https://github.com/acampbell3000/clojure-imdb-parser/blob/master/run.py
+
+The python script expects the latest release jar to be in the same directory
+or ./release. In addition, it currently expects the operating system to
+be a unix / linux based machine:
+
+	./run.py -q "Film Title" -o "/path/to/output-file.txt"
+
+Finally, please look at the CHANGES.txt file to see update
 descriptions since the last release tag.
 
 ### Contribute
