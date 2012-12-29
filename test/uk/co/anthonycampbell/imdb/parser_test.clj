@@ -15,13 +15,16 @@
 
 (ns uk.co.anthonycampbell.imdb.parser-test
     (:use [clojure.test :as test]
+        [uk.co.anthonycampbell.imdb.request :as request]
+        [uk.co.anthonycampbell.imdb.cast-parser :as cast-parser]
         [uk.co.anthonycampbell.imdb.parser :as parser]
+        [uk.co.anthonycampbell.imdb.struct :as struct]
         [uk.co.anthonycampbell.imdb.core :as core]))
 
 (def test-url "http://www.imdb.com")
 (def test-query-url "http://www.imdb.com/find?s=all&q=clash%20of%20the%20titans")
 (def test-title-url "http://www.imdb.com/title/tt0800320")
-(def test-agent select-agent)
+(def test-agent request/select-agent)
 
 (println "\nBase URL:" test-url)
 (println "Title URL:" test-title-url)
@@ -113,7 +116,7 @@
 (deftest check-construct-release-date
     (testing
         "Ensure we successfully construct a release date string from parsed title page."
-        (is (= "2 April 2010 (UK)"
+        (is (= "2 April 2010"
                (construct-release-date
                    (parse-title-main-details (body-resource test-title-url)))))))
         
