@@ -7,9 +7,8 @@ Potential improvements:
 - Update Python script to support Windows.
 - Ability to perhaps just output JSON.
 - Clearer direction of control in the parser namespace.
-- Apply length limit to short description (255 characters)
 
-Release notes 1.0.0 (TBA)
+Release notes 1.0.0 (29th December 2012)
 ----------------------------------------
 
 - Introduce Python wrapper script for lazy people.
@@ -24,5 +23,6 @@ Release notes 1.0.0 (TBA)
 - Contribute documentation.
 - Integration test suite.
 - Better selection for the title href property.
+- Trim short descriptions to 255 characters.
 
 Initial release: 0.0.1 (25th December 2012)

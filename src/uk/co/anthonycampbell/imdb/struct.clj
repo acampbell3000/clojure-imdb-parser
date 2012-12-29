@@ -17,6 +17,7 @@
     (:use uk.co.anthonycampbell.imdb.request)
     (:use uk.co.anthonycampbell.imdb.parser)
     (:use uk.co.anthonycampbell.imdb.cast-parser)
+    (:require [clojure.string])
     (:require [clojure.contrib.string :as ccstring]))
 
 ; Define IMDB title struct
@@ -44,6 +45,26 @@
     :sort-title
     :sort-cast
     :sort-show)
+
+(defn trim-description
+    "Ensure description doesn't go over 255 characters."
+    [description]
+    (if (not-empty description)
+        
+        ; Let's get rid of those new lines
+        (let [description-length (count description)]
+            
+            ; Is description longer than MPEG-4 limit
+            (if (> description-length 255)
+                ; Trim last sentence
+                (let [trimmed-description (clojure.string/replace description #"\.[^.]*$" "")]
+                    (trim-description trimmed-description))
+                
+                ; We're all done
+                (let [complete-description (ccstring/trim description)]
+                    (if (re-find #"\.$" complete-description)
+                        complete-description
+                        (str complete-description ".")))))))
 
 (defn construct-media-struct-from-results
     "Convert the provided search results page into a media struct"
@@ -100,8 +121,8 @@
         (if (not (nil? media-struct))
             (if (not-empty (media-struct :description))
                 (media-struct :description)
-                (construct-description page-content))
-            (construct-description page-content))
+                (trim-description (construct-description page-content)))
+            (trim-description (construct-description page-content)))
         
         (if (not (nil? media-struct))
             (if (not-empty (media-struct :long-description))

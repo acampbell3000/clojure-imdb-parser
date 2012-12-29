@@ -119,7 +119,7 @@
         (is (= "2 April 2010"
                (construct-release-date
                    (parse-title-main-details (body-resource test-title-url)))))))
-        
+
 (deftest check-construct-description
     (testing
         "Ensure we successfully construct a description string from parsed title page."
