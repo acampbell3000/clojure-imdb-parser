@@ -6,8 +6,6 @@ Dependencies:
 Potential improvements:
 - Update Python script to support Windows.
 - Ability to perhaps just output JSON.
-- Better support for TV Shows.
-- Integration test suite.
 - Apply length limit to short description (255 characters)
 
 Release notes 1.0.0 (TBA)
@@ -23,5 +21,7 @@ Release notes 1.0.0 (TBA)
 - Format genre tests.
 - Usage documentation.
 - Contribute documentation.
+- Integration test suite.
+- Better selection for the title href property.
 
 Initial release: 0.0.1 (25th December 2012)
