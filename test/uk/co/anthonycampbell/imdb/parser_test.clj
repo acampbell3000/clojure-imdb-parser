@@ -62,14 +62,14 @@
 
 (deftest check-media-result-selection
     (testing
-        "Ensure we successfully select media from parsed results."
-        (is (not (= "" (select-media-from-results (body-resource test-query-url)))))))
+        "Ensure we successfully select title from parsed results."
+        (is (not (= "" (select-title-from-results (body-resource test-query-url)))))))
 
 (deftest check-construct-media-struct-from-results
     (testing
         "Ensure we can successfully convert search results into usable struct."
         (is (not (= "" (construct-media-struct-from-results
-                           (select-media-from-results (body-resource test-query-url))
+                           (select-title-from-results (body-resource test-query-url))
                            test-url))))))
 
 (deftest check-parse-title-main-details

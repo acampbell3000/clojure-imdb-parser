@@ -8,6 +8,7 @@ Potential improvements:
 - Ability to perhaps just output JSON.
 - Better support for TV Shows.
 - Integration test suite.
+- Apply length limit to short description (255 characters)
 
 Release notes 1.0.0 (TBA)
 ----------------------------------------

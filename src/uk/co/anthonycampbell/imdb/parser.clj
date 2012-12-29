@@ -24,14 +24,35 @@
 (defn parse-search-results
     "Selects the search result content from the query result"
     [page-content]
-    (first (html/select page-content
+    (html/select page-content
         [:html :body :div#wrapper :div#root :div#pagecontent :div#content-2-wide :div#main
-         :div.findSection :table.findList])))
+         :div.findSection]))
 
-(defn select-media-from-results
-    "Attempts to select the correct media from the search results"
+(defn select-title-from-results
+    "Attempts to select the first title from the search results"
     [page-content]
-    (first (html/select (parse-search-results page-content) [:td.result_text :a])))
+    (loop [section-title-link {}
+           section-list (parse-search-results page-content)]
+        (if (empty? section-title-link)
+            (if (not-empty section-list)
+                
+                ; Recurrsively look for the title sub-section in the search result
+                (recur
+                    (let [section-h3-header (html/select (first section-list) [:h3.findSectionHeader])]
+                        (if (not-empty section-h3-header)
+                            
+                            ; Got to be careful has these headers can sometimes be links
+                            (let [header-text (if (> (count (:content (first section-h3-header))) 1)
+                                    (second (:content (first section-h3-header)))
+                                    (first (:content (first section-h3-header))))]
+                                (if (not-empty header-text)
+                                    (if (= header-text "Titles")
+                                        
+                                        ; Persit first link in this section
+                                        (merge section-title-link
+                                             (first (html/select (first section-list) [:td.result_text :a]))))))))
+                    (rest section-list)))
+            section-title-link)))
 
 (defn parse-title-main-details
     "Selects the main information from the selected title page"

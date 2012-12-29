@@ -39,7 +39,7 @@
                     
                     ; Construct result
                     (construct-media-struct-from-results
-                          (select-media-from-results search-response) base-url))))))
+                          (select-title-from-results search-response) base-url))))))
 
 (defn parse-title
     "Takes the provided search response and use the metadata to select and
