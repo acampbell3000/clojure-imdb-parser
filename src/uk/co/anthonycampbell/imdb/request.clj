@@ -43,7 +43,9 @@
 (defn encode-url
     "Ensure the provided URL is safe"
     [url]
-    (URLEncoder/encode url))
+    (if (not-empty url)
+        (URLEncoder/encode url)
+        ""))
 
 (defn fetch-body
     "Using the CLJ HTTP client - send the HTTP request."

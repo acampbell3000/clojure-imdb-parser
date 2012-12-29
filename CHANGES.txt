@@ -6,7 +6,6 @@ Dependencies:
 Potential improvements:
 - Update Python script to support Windows.
 - Ability to perhaps just output JSON.
-- Contribute documentation.
 - Better support for TV Shows.
 - Integration test suite.
 
@@ -22,5 +21,6 @@ Release notes 1.0.0 (TBA)
 - Format genre to make them more iTunes friendly.
 - Format genre tests.
 - Usage documentation.
+- Contribute documentation.
 
 Initial release: 0.0.1 (25th December 2012)
