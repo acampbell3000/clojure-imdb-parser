@@ -57,3 +57,17 @@ latest source code on GitHub:
 
     http://wiki.github.com/acampbell3000/clojure-imdb-parser
 
+This project is built using leiningen:
+
+	https://github.com/technomancy/leiningen
+
+Leiningen is used for automating Clojure projects 'without setting your hair on
+fire'. Please ensure you have leiningen built and available on your system PATH.
+
+Once installed you can build the project using the following:
+
+	lein clean && lein uberjar
+
+To run tests:
+
+	lein clean && lein test
