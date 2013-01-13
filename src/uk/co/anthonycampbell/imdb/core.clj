@@ -31,7 +31,7 @@
     ; Prepare query string
     (if (not-empty query-term)
         (let [url (str query-url (encode-url query-term))]
-            (println (str (str "Searching for: '", query-term) "'\n"))
+            ;(println (str (str "Searching for: '", query-term) "'\n"))
             
             ; Search for provided title
             (let [search-response (body-resource url)]
@@ -88,13 +88,8 @@
                     (if (not-empty media-struct)
                         (let [media-struct (parse-cast media-struct)]
                             
-                            ; Determine output
-                            (if (not-empty output-file)
-                                
-                                ; Finally write to file
-                                (write-to-file media-struct output-file))
-                            
-                            media-struct)))))))
+                            ; Finally format and if set - output to file
+                            (format-struct media-struct output-file))))))))
 
 (defn -main
     "Main method
@@ -103,10 +98,6 @@
          clojure-imdb-parser.jar \"Title Name\" output-file.txt
     "
     [& args]
-    (println "\n--- Begin ---\n")
-    
     (if (not-empty args)
         (let [complete-media-struct (parse (first args) (second args))]
-            (println complete-media-struct)))
-    
-    (println "\n---- End ----"))
+            (println complete-media-struct))))

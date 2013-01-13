@@ -66,45 +66,48 @@
                     updated-genre)
                 updated-genre))))
 
-(defn write-to-file
+(defn format-struct
     "Formats and then writes the provided media struct to the specified output file"
     [media-struct output-file]
     
     ; Validate
     (if (not (nil? media-struct))
-        (if (not-empty output-file)
+        (let [builder (new StringBuilder)]
+            (.append builder "\n")
+                
+            (if (not-empty (:title media-struct))
+                (.append builder (str (str "Title:                  " (:title media-struct)) "\n\n")))
+            (if (not-empty (:href media-struct))
+                (.append builder (str (str "URL:                    " (:href media-struct)) "\n")))
+            (if (not-empty (:cast-href media-struct))
+                (.append builder (str (str "Cast URL:               " (:cast-href media-struct)) "\n")))
+            (if (not-empty (:classification media-struct))
+                (.append builder (str (str "Classification:         " (:classification media-struct)) "\n")))
+            (if (not-empty (:genre media-struct))
+                (.append builder (str (str "Genre:                  "
+                    (format-genre (:genre media-struct))) "\n")))
+            (if (not-empty (:release-date media-struct))
+                (.append builder (str (str "Release Date:           "
+                    (format-date (clojure.string/replace (:release-date media-struct) #"[  ]" " "))) "\n")))
+            (if (not-empty (:production-company media-struct))
+                (.append builder (str (str "Production Company:     " (:production-company media-struct)) "\n")))
+            (if (not-empty (:description media-struct))
+                (.append builder (str (str "\nDescription:            " (:description media-struct)) "\n")))
+            (if (not-empty (:long-description media-struct))
+                (.append builder (str (str "\nLong Description:       " (:long-description media-struct)) "\n")))
+            (if (not-empty (:cast media-struct))
+                (.append builder (str (str "\nCast:                   " (:cast media-struct)) "\n")))
+            (if (not-empty (:directors media-struct))
+                (.append builder (str (str "\nDirector:               " (:directors media-struct)) "\n")))
+            (if (not-empty (:producers media-struct))
+                (.append builder (str (str "\nProducers:              " (:producers media-struct)) "\n")))
+            (if (not-empty (:screen-writers media-struct))
+                (.append builder (str (str "\nScreen Writers:         " (:screen-writers media-struct)) "\n")))
             
-            ; Open output file
-            (with-open [fw (writer output-file)]
-                (println (str (str "Writing output to file: '", output-file) "'\n")) 
-                
-                (.write fw "\n")
-                
-                (if (not-empty (:title media-struct))
-                    (.write fw (str (str "Title:                  " (:title media-struct)) "\n\n")))
-                (if (not-empty (:href media-struct))
-                    (.write fw (str (str "URL:                    " (:href media-struct)) "\n")))
-                (if (not-empty (:cast-href media-struct))
-                    (.write fw (str (str "Cast URL:               " (:cast-href media-struct)) "\n")))
-                (if (not-empty (:classification media-struct))
-                    (.write fw (str (str "Classification:         " (:classification media-struct)) "\n")))
-                (if (not-empty (:genre media-struct))
-                    (.write fw (str (str "Genre:                  "
-                        (format-genre (:genre media-struct))) "\n")))
-                (if (not-empty (:release-date media-struct))
-                    (.write fw (str (str "Release Date:           "
-                        (format-date (clojure.string/replace (:release-date media-struct) #"[  ]" " "))) "\n")))
-                (if (not-empty (:production-company media-struct))
-                    (.write fw (str (str "Production Company:     " (:production-company media-struct)) "\n")))
-                (if (not-empty (:description media-struct))
-                    (.write fw (str (str "\nDescription:            " (:description media-struct)) "\n")))
-                (if (not-empty (:long-description media-struct))
-                    (.write fw (str (str "\nLong Description:       " (:long-description media-struct)) "\n")))
-                (if (not-empty (:cast media-struct))
-                    (.write fw (str (str "\nCast:                   " (:cast media-struct)) "\n")))
-                (if (not-empty (:directors media-struct))
-                    (.write fw (str (str "\nDirector:               " (:directors media-struct)) "\n")))
-                (if (not-empty (:producers media-struct))
-                    (.write fw (str (str "\nProducers:              " (:producers media-struct)) "\n")))
-                (if (not-empty (:screen-writers media-struct))
-                    (.write fw (str (str "\nScreen Writers:         " (:screen-writers media-struct)) "\n")))))))
+            (if (not-empty output-file)
+                ; Open output file
+                (with-open [fw (writer output-file)]
+                    (println (str (str "\n    Writing output to file: '", output-file) "'\n"))
+                    (.write fw (.toString builder))))
+            
+            (.toString builder))))

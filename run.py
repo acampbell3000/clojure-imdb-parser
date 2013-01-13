@@ -17,9 +17,13 @@
 # Required imports
 import getopt, sys, re, subprocess, exceptions
 
+# Constants
+_default_output_file = "./output.txt"
 
 # Help
 _help = """
+    Clojure IMDB Parser
+
     __file__ [options]
 
     Simple wrapper script for the Clojure IMDB parser.
@@ -27,7 +31,11 @@ _help = """
     Options:
         -q --query Option which specifies the query text.
 
+        -f --file Option which writes the search result to the defailt output file: __default_output_file__
+
         -o --output [path/to/file] If specified, writes the search result to the a file.
+
+        -v --verbose Option to enable verbose output.
 
         -h -? --help Option to display this text.
 
@@ -36,20 +44,19 @@ _help = """
         __file__ --query "Clash of the Titans" --output output.txt
 """
 _help = _help.replace("__file__", __file__)
-
+_help = _help.replace("__default_output_file__", _default_output_file)
 
 # Main method
 def main():
     # Initialise variables
+    verbose = False
     output = ""
     query_term = ""
     output_file = ""
     latest_jar = ""
 
-    print "\n    Clojure IMDB Parser"
-
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "q:o:?h", ["query=", "output=", "help"])
+        opts, args = getopt.getopt(sys.argv[1:], "q:fo:?hv", ["query=", "file", "output=", "help", "verbose"])
 
     except getopt.GetoptError as error:
         # Print help information and exit:
@@ -61,31 +68,39 @@ def main():
         if option in ("-q", "--query"):
             query_term = str(argument)
 
+        elif option in ("-f", "--file"):
+            output_file = _default_output_file
+
         elif option in ("-o", "--output"):
             output_file = str(argument)
+
+        elif option in ("-v", "--verbose"):
+            verbose = True
 
         elif option in ("-h", "--help"):
             print _help
             sys.exit(0)
-
+            
     # Check we're good to go
     if query_term == None or query_term == "":
         print _help
-        sys.exit(2)        
+        sys.exit(2)   
+
+    if verbose:
+        print "\n    Clojure IMDB Parser"     
 
     try:
         # Determine newest parser
-        process = subprocess.Popen(["ls -t ./release | grep \"clojure-imdb-parser.*.jar\" | head -n 1"],
+        process = subprocess.Popen(["ls -r ./release | grep \"clojure-imdb-parser.*.jar\" | head -n 1"],
             stdout=subprocess.PIPE, shell=True)
         latest_jar, stderr = process.communicate()
         process.wait()
 
     except exceptions.Exception as error:
-        print "\nUnable to find latest clojure-imdb-parser.jar:"
+        print "\n    Unable to find latest clojure-imdb-parser.jar:"
         print "\n    " + str(error)
         sys.exit(1)
 
-    # Validate
     if latest_jar != None and str(latest_jar) != "":
         latest_jar = "./release/" + str(latest_jar)
 
@@ -93,8 +108,9 @@ def main():
         pattern = re.compile(r'\n')
         latest_jar = pattern.sub(" ", latest_jar).strip()
 
-        print "\n    Latest clojure-imdb-parser.jar:"
-        print "\n    " + latest_jar + "\n"
+        if verbose:
+            print "\n    Latest clojure-imdb-parser.jar:"
+            print "\n    " + latest_jar + "\n"
 
         try:
             # Execute the parser
