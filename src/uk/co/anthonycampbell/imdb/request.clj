@@ -56,4 +56,6 @@
     "Retrieves the web page specified by the url and makes an html-resource
      out of it which is used by enlive."
     [url]
-    (html/html-resource (ByteArrayInputStream. (.getBytes (fetch-body url)))))
+    (try (html/html-resource (ByteArrayInputStream. (.getBytes (fetch-body url))))
+        ; Return if we get a server error response
+        (catch Exception ex nil)))

@@ -43,8 +43,10 @@
     [date-string]
     
     (if (not-empty date-string)
-        (let [date (. (SimpleDateFormat. "dd MMM yyyy") parse date-string)]
-            (. (SimpleDateFormat. "yyyy-MM-dd") format date))))
+        (try
+            (let [date (. (SimpleDateFormat. "dd MMM yyyy") parse date-string)]
+                (. (SimpleDateFormat. "yyyy-MM-dd") format date))
+            (catch java.text.ParseException pe nil))))
 
 (defn format-genre
     "Formats the provided genre string into the iTunes compatable genre"
