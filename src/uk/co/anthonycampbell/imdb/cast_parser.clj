@@ -46,7 +46,7 @@
             (if (not-empty table-links)
                 
                 ; Check whether this is the right article
-                (if (= (first (:content (first table-links))) "Directed by")
+                (if (.contains (str (first (:content (first table-links)))) "Directed by")
                     ; Return directors
                     (rest table-links)
                     
@@ -62,7 +62,7 @@
             (if (not-empty table-links)
                 
                 ; Check whether this is the right article
-                (if (= (first (:content (first table-links))) "Produced by")
+                (if (.contains (str (first (:content (first table-links)))) "Produced by")
                     ; Return producers
                     (rest (html/select (first cast-tables) [:tr]))
                     
@@ -78,7 +78,7 @@
             (if (not-empty table-links)
                 
                 ; Check whether this is the right article
-                (if (= (first (:content (first table-links))) "Writing credits")
+                (if (.contains (str (first (:content (first table-links)))) "Writing credits")
                     ; Return directors
                     (rest table-links)
                     
@@ -115,10 +115,7 @@
                                     
                                     ; We don't want too many cast entries
                                     (if (<= (count cast-list) 20)
-                                        
-                                        ; Lets only continue if we're still dealing with 'real' characters
-                                        (if (= (str cast-character-value) ":a")
-                                            (rest cast-rows)))))))
+                                        (rest cast-rows))))))
                 
                 ; Convert list to string
                 (loop [cast-string ""
