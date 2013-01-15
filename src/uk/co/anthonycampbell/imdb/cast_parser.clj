@@ -173,7 +173,7 @@
                                             (str ", " producer)
                                             "")))
                                         
-                                (first (:content (first producers)))))))
+                                (str ", " (first (:content (first producers))))))))
                     (rest producer-list))
                 
                 ; Final clean up
