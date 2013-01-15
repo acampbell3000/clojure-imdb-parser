@@ -8,10 +8,10 @@ Potential improvements:
 - Ability to perhaps just output JSON.
 - Clearer direction of control in the parser namespace.
 
-Release notes 1.0.2 (TBA)
+Release notes 1.0.2 (15th January 2013)
 ----------------------------------------
 
-- Fix TV title screen writer, production, and director parsing.
+- Fix TV title screen writer, producer, and director parsing.
 - Also now will always try to get a cast length of 20.
 
 Release notes 1.0.1 (13th January 2013)
