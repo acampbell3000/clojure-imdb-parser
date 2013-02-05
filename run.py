@@ -15,10 +15,11 @@
 # limitations under the License.
 
 # Required imports
-import getopt, sys, re, subprocess, exceptions
+import os, getopt, sys, re, subprocess, exceptions
 
 # Constants
 _default_output_file = "./output.txt"
+_script_directory = os.path.dirname(os.path.realpath(__file__))
 
 # Help
 _help = """
@@ -91,7 +92,7 @@ def main():
 
     try:
         # Determine newest parser
-        process = subprocess.Popen(["ls -r ./release | grep \"clojure-imdb-parser.*.jar\" | head -n 1"],
+        process = subprocess.Popen(["ls -r " + _script_directory + "/release | grep \"clojure-imdb-parser.*.jar\" | head -n 1"],
             stdout=subprocess.PIPE, shell=True)
         latest_jar, stderr = process.communicate()
         process.wait()
@@ -102,7 +103,7 @@ def main():
         sys.exit(1)
 
     if latest_jar != None and str(latest_jar) != "":
-        latest_jar = "./release/" + str(latest_jar)
+        latest_jar = _script_directory + "/release/" + str(latest_jar)
 
         # Clean up path
         pattern = re.compile(r'\n')
