@@ -1,5 +1,5 @@
 
-; Copyright 2012 Anthony Campbell (anthonycampbell.co.uk)
+; Copyright 2013 Anthony Campbell (anthonycampbell.co.uk)
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License");
 ; you may not use this file except in compliance with the License.
@@ -19,10 +19,18 @@
     (:use uk.co.anthonycampbell.imdb.struct)
     (:use uk.co.anthonycampbell.imdb.parser)
     (:use uk.co.anthonycampbell.imdb.cast-parser)
-    (:use uk.co.anthonycampbell.imdb.format))
+    (:use uk.co.anthonycampbell.imdb.format)
+    (:use clojure.tools.logging)
+    (:use clj-logging-config.log4j))
 
 (def base-url "http://www.imdb.com")
 (def query-url (str base-url "/find?s=all&q="))
+
+(defn setup-logging
+    "Prepare log4j root logger with with console appender set to level WARN"
+    []
+    (org.apache.log4j.BasicConfigurator/configure)
+    (.setLevel (org.apache.log4j.Logger/getRootLogger) (org.apache.log4j.Level/WARN)))
 
 (defn perform-search
     "Takes the provided query string and performs a search for the title on IMDB"
@@ -31,7 +39,8 @@
     ; Prepare query string
     (if (not-empty query-term)
         (let [url (str query-url (encode-url query-term))]
-            ;(println (str (str "Searching for: '", query-term) "'\n"))
+            (debug "Searching for", (str "'", query-term, "'"))
+            (debug "- url:", url, "\n")
             
             ; Search for provided title
             (let [search-response (body-resource url)]
@@ -63,10 +72,11 @@
     ; Open cast page
     (if (not-empty media-struct)
         (let [cast-url (:cast-href media-struct)]
+            
             (if (not-empty cast-url)
                 (let [cast-page-content (body-resource cast-url)]
+                    
                     (if (not-empty cast-page-content)
-                        
                         ; Parse cast page
                         (update-media-struct cast-page-content, media-struct)))))))
 
@@ -95,9 +105,21 @@
     "Main method
     
      Example usage:
+         clojure-imdb-parser.jar \"Title Name\"
          clojure-imdb-parser.jar \"Title Name\" output-file.txt
+         clojure-imdb-parser.jar \"Title Name\" output-file.txt DEBUG
     "
     [& args]
+    (setup-logging)
+    
+    (if (not-empty args)
+        (if (> (count args) 2)
+            (set-loggers! "uk.co.anthonycampbell.imdb" 
+                          { :level :debug
+                            :pattern "%d{yyyy-MM-dd hh:mm:ss} %m%n" })))
+    
     (if (not-empty args)
         (let [complete-media-struct (parse (first args) (second args))]
             (println complete-media-struct))))
+
+(-main "Doom" "" true)

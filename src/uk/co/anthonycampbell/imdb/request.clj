@@ -1,5 +1,5 @@
 
-; Copyright 2012 Anthony Campbell (anthonycampbell.co.uk)
+; Copyright 2013 Anthony Campbell (anthonycampbell.co.uk)
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License");
 ; you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 ; limitations under the License.
 
 (ns uk.co.anthonycampbell.imdb.request
+    (:use clojure.tools.logging)
+    (:use clj-logging-config.log4j)
     (:require [clj-http.client :as client])
     (:require [net.cgrand.enlive-html :as html])
     (import (java.io ByteArrayInputStream))

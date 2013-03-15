@@ -1,5 +1,5 @@
 
-; Copyright 2012 Anthony Campbell (anthonycampbell.co.uk)
+; Copyright 2013 Anthony Campbell (anthonycampbell.co.uk)
 ;
 ; Licensed under the Apache License, Version 2.0 (the "License");
 ; you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 
 (ns uk.co.anthonycampbell.imdb.parser
     (:use uk.co.anthonycampbell.imdb.request)
+    (:use clojure.tools.logging)
+    (:use clj-logging-config.log4j)
     (:require [clj-http.client :as client])
     (:require [net.cgrand.enlive-html :as html])
     (:require [net.cgrand.xml :as xml])
@@ -31,6 +33,7 @@
 (defn select-title-from-results
     "Attempts to select the first title from the search results"
     [page-content]
+    
     (loop [section-title-link {}
            section-list (parse-search-results page-content)]
         (if (empty? section-title-link)
@@ -39,12 +42,15 @@
                 ; Recurrsively look for the title sub-section in the search result
                 (recur
                     (let [section-h3-header (html/select (first section-list) [:h3.findSectionHeader])]
+                        (debug "- h3:", section-h3-header)
+                        
                         (if (not-empty section-h3-header)
-                            
                             ; Got to be careful has these headers can sometimes be links
                             (let [header-text (if (> (count (:content (first section-h3-header))) 1)
                                     (second (:content (first section-h3-header)))
                                     (first (:content (first section-h3-header))))]
+                                (debug "- h3 text:", header-text)
+                                
                                 (if (not-empty header-text)
                                     (if (= header-text "Titles")
                                         

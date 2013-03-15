@@ -115,7 +115,7 @@ def main():
 
         try:
             # Execute the parser
-            process = subprocess.Popen(["java", "-jar", latest_jar, query_term, output_file],
+            process = subprocess.Popen(["java", "-jar", latest_jar, query_term, output_file, verbose],
                 stdout=subprocess.PIPE)
             output, stderr = process.communicate()
             process.wait()
