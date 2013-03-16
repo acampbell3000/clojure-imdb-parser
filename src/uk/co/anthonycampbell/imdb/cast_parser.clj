@@ -23,22 +23,6 @@
     (:require [clojure.string])
     (:require [clojure.contrib.string :as ccstring]))
 
-(defn parse-cast-page
-    "Selects the cast information from the selected cast crew page"
-    [page-content]
-    (html/select page-content
-        [:html :body :div#wrapper :div#root :div#pagecontent :div#tn15 :div#tn15main :div#tn15content
-         :table]))
-
-(defn search-for-cast
-    "Searches through all of the provided cast tables until we find the
-     cast sub section."
-    [cast-tables]
-    (if (not-empty cast-tables)
-        (let [cast-table (html/select cast-tables [:table.cast])]
-            (if (not-empty cast-table)
-                cast-table))))
-
 (defn search-for-directors
     "Searches through all of the provided cast tables until we find the
      director sub section."
@@ -90,9 +74,10 @@
 (defn construct-cast
     "Construct a cast string based on the provided parsed page content"
     [page-content]
-    
     (if (not-empty page-content)
-        (let [cast-table (search-for-cast (parse-cast-page page-content))]
+        (let [cast-table (html/select page-content [:table.cast_list])]
+            (debug "- Looking for cast table...")
+;            (debug cast-table)
             
             ; Parse cast list
             (loop [cast-list []
@@ -100,24 +85,27 @@
                 (if (not-empty cast-rows)
                     ; Recurrsively compile cast list
                     (recur (concat cast-list
-                        (let [cast-name (html/select (first cast-rows) [:td.nm])
-                              cast-character (html/select (first cast-rows) [:td.char])]
+                        (let [cast-name (html/select (first cast-rows) [:td.itemprop])
+                              cast-character (html/select (first cast-rows) [:td.character])]
                             
                             ; Only persist if we're dealing with a 'real' character
                             (if (not-empty cast-character)
-                                (let [cast-name-value (first (:content (first cast-name)))
-                                      cast-character-value (:tag (first (:content (first cast-character))))]
-                                    (if (= (str cast-character-value) ":a")
-                                        (if (not-empty cast-name-value)
-                                            [(first (:content cast-name-value))]))))))
-                        ; Next row
-                        (let [cast-character (html/select (first cast-rows) [:td.char])]
-                            (if (not-empty cast-character)
-                                (let [cast-character-value (:tag (first (:content (first cast-character))))]
+                                (let [cast-name-value (:content (second (:content (first cast-name))))
+                                      cast-character-value (:content (second (:content (first cast-character))))]
+                                    (debug "---- Actor:" cast-name-value)
                                     
-                                    ; We don't want too many cast entries
-                                    (if (<= (count cast-list) 20)
-                                        (rest cast-rows))))))
+                                    (if (not-empty cast-name-value)
+                                        (if (not-empty (html/select cast-name-value [:span]))
+                                            [(ccstring/trim (first (:content (second cast-name-value))))]
+                                            [(ccstring/trim cast-name-value)]))))))
+                        ; Next row
+                        (let [cast-character (html/select (first cast-rows) [:td.character])]
+                            (if (not-empty cast-character)
+                                ; We don't want too many cast entries
+                                (if (<= (count cast-list) 20)
+                                     (rest cast-rows))
+                                
+                                (rest cast-rows))))
                 
                 ; Convert list to string
                 (loop [cast-string ""
@@ -138,7 +126,7 @@
     (if (not-empty page-content)
         ; Parse list of directors
         (loop [director-string ""
-               director-list (search-for-directors (parse-cast-page page-content))]
+               director-list (search-for-directors (html/select page-content [:table]))]
             (if (not-empty director-list)
                 ; Recurrsively compile director string
                 (recur (str director-string (str ", " (first (:content (first director-list)))))
@@ -154,7 +142,7 @@
     (if (not-empty page-content)
         ; Parse list of producers
         (loop [producer-string ""
-               producer-list (search-for-producers (parse-cast-page page-content))]
+               producer-list (search-for-producers (html/select page-content [:table]))]
             (if (not-empty producer-list)
                 
                 ; Recurrsively compile producer string
@@ -188,7 +176,7 @@
     (if (not-empty page-content)
         ; Parse list of screen writers
         (loop [screen-writer-set (sorted-set)
-               screen-writer-list (search-for-screen-writers (parse-cast-page page-content))]
+               screen-writer-list (search-for-screen-writers (html/select page-content [:table]))]
             (if (not-empty screen-writer-list)
                 
                 ; Recurrsively push screen writers into set to de-dupe items

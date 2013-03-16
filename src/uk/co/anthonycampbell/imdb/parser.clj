@@ -98,72 +98,6 @@
                             ; Next link
                             (select-href-from-link (rest head-links)))))))))
 
-(defn search-for-summary-within-article
-    "Searches through all of the provided article DIV's sub sections until we find the
-     storyline section. The selects the first non-empty paragraph available."
-    [article-divs]
-    (if (not-empty article-divs)
-        (let [tag-h2 (html/select article-divs [:h2])]
-            (if (not-empty tag-h2)
-                
-                ; Check whether this is the right article
-                (if (= (first (:content (first tag-h2))) "Storyline")
-                    
-                    ; Extract first paragraph
-                    (let [storyline (html/select article-divs [:p])]
-                        (if (not-empty storyline)
-                            (ccstring/trim (first (:content (first storyline))))))
-                    
-                    ; Move onto next article
-                    (search-for-summary-within-article (rest article-divs)))))))
-
-(defn parse-summary
-    "Selects the long description from the selected title page"
-    [page-content]
-    (if (not-empty page-content)
-        (let [extended-details (parse-title-extended-details page-content)]
-            (if (not-empty extended-details)
-                
-                ; Check each sub article available in the extended titles section
-                (search-for-summary-within-article extended-details)))))
-
-(defn search-for-company-within-article
-    "Searches through all of the provided article DIV's sub sections until we find the
-     production company section. Then selects the first company from the available list."
-    [article-div]
-    (if (not-empty article-div)
-        
-        ; Grab ALL text blocks for this particular article
-        (let [txt-block (html/select article-div [:div.txt-block])]
-            (if (not-empty txt-block)
-                (let [tag-h4 (html/select (first txt-block) [:h4])]
-                    (if (not-empty tag-h4)
-                        
-                        ; Check whether this is the right text block
-                        (if (= (first (:content (first tag-h4))) "Production Co:")
-                            
-                            ; Extract first company
-                            (let [production-link (html/select (first txt-block) [:a])]
-                                (if (not-empty production-link)
-                                    (ccstring/trim (first (:content (first production-link))))))
-                            
-                            ; Move onto next text block
-                            (search-for-company-within-article (rest txt-block)))))))))
-
-(defn parse-production-company
-    "Selects the production companies from the selected title page"
-    [page-content]
-    (if (not-empty page-content)
-        (let [extended-details (parse-title-extended-details page-content)]
-            (if (not-empty extended-details)
-                
-                ; Check each sub article available in the extended titles section
-                (let [company-search (search-for-company-within-article extended-details)]
-                    (if (not-empty company-search)
-                        
-                        ; Final tweak
-                        (str "© " company-search)))))))
-
 (defn select-cast-crew-link
     "Attempts to select the 'see more case / crew' link from the provided list."
     [page-content]
@@ -232,7 +166,7 @@
             (if (not-empty infobar-span)
                 (:title (:attrs (first infobar-span)))))))
 
-(defn select-genres-from-span-list
+(defn select-genres-from-list
     "Attempts to select all of the span tags which contain a genre string"
     [span-list]
     (loop [genre-string ""
@@ -244,7 +178,8 @@
                     (let [type (:itemprop (:attrs item))]
                         (if (= "genre" type)
                             (let [genre (first (:content item))]
-                                (debug "-----", genre)
+                                (debug "----", genre)
+                                
                                 (str (str genre-string " ") genre))
                             genre-string)))
                 (rest item-list))
@@ -260,11 +195,11 @@
             (debug "- Looking for genres...")
             
             (if (not-empty itemprops)
-                (let [genre-string (select-genres-from-span-list itemprops)]
+                (let [genre-string (select-genres-from-list itemprops)]
                     (if (not-empty genre-string)
                         (ccstring/trim genre-string)))))))
 
-(defn select-release-date-from-meta-list
+(defn select-release-date-from-list
     "Attempts to select all of the tags which contain a datePublished attribute"
     [list]
     (loop [date-string ""
@@ -277,7 +212,8 @@
                         
                         (if (= "See all release dates" link-title)
                             (let [release-date (first (:content item))]
-                                (debug "-----", release-date)
+                                (debug "----", release-date)
+                                
                                 (str (str date-string " ") release-date))
                             date-string)))
                 (rest item-list))
@@ -293,7 +229,7 @@
             (debug "- Looking for release dates...")
             
             (if (not-empty meta-list)
-                (let [release-date-string (select-release-date-from-meta-list meta-list)]
+                (let [release-date-string (select-release-date-from-list meta-list)]
                     (if (not-empty release-date-string)
                         (ccstring/trim release-date-string)))))))
 
@@ -312,14 +248,72 @@
                         ; Next paragraph
                         (construct-description (rest paragraph))))))))
 
+(defn search-for-long-description-within-list
+    "Searches through all of the provided title DIV sub sections until we find the
+     storyline section. The selects the first non-empty paragraph available."
+    [list]
+    (if (not-empty list)
+        (let [h2 (html/select list [:h2])]
+            (if (not-empty h2)
+                ; Check whether this is the right article
+                (if (= (first (:content (first h2))) "Storyline")
+                    
+                    ; Extract first paragraph
+                    (let [paragraphs (html/select list [:p])]
+                        (if (not-empty paragraphs)
+                            (let [storyline (ccstring/trim (first (:content (first paragraphs))))]
+                                (debug "----" storyline)
+                                
+                                storyline)))
+                    
+                    ; Move onto next article
+                    (search-for-long-description-within-list (rest list)))))))
+
 (defn construct-long-description
-    "Construct a long description string based on the provided parsed page content"
+    "Construct a long description string based on the provided title page content"
     [page-content]
     (if (not-empty page-content)
-        (parse-summary page-content)))
+        (let [text-blocks (html/select page-content [:div])]
+            (debug "- Looking for long description...")
+            
+            (if (not-empty text-blocks)
+                (let [long-description (search-for-long-description-within-list text-blocks)]
+                    long-description)))))
+
+(defn search-for-company-within-list
+    "Searches through all of the provided article DIV's sub sections until we find the
+     production company section. Then selects the first company from the available list."
+    [list]
+    (if (not-empty list)
+        (let [h4 (html/select (first list) [:h4])]
+            (if (not-empty h4)
+                ; Check whether this is the right text block
+                (if (= (first (:content (first h4))) "Production Co:")
+                    
+                    ; Extract first company
+                    (let [production-company-link (html/select (first list) [:a])]
+                        (let [production-company (first (:content (first production-company-link)))]
+                            (debug "----", production-company)
+                            
+                            (if (not-empty production-company)
+                                (if (not-empty (html/select production-company [:span]))
+                                    (ccstring/trim (first (:content production-company)))
+                                    
+                                    (ccstring/trim production-company)))))
+                    
+                    ; Move onto next item
+                    (search-for-company-within-list (rest list)))))))
 
 (defn construct-production-company
     "Construct a production company string based on the provided parsed page content"
     [page-content]
     (if (not-empty page-content)
-        (parse-production-company page-content)))
+        (let [text-blocks (html/select page-content [:div.txt-block])]
+            (debug "- Looking for production companies...")
+            
+            (if (not-empty text-blocks)
+                (let [production-company (search-for-company-within-list text-blocks)]
+                    (if (not-empty production-company)
+                        
+                        ; Final tweak
+                        (str "© " production-company)))))))
