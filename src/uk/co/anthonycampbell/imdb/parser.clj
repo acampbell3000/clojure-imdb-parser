@@ -26,6 +26,8 @@
 (defn parse-search-results
     "Selects the search result content from the query result"
     [page-content]
+    (debug "Parse search results...")
+    
     (html/select page-content
         [:html :body :div#wrapper :div#root :div#pagecontent :div#content-2-wide :div#main
          :div.findSection]))
@@ -53,10 +55,12 @@
                                 
                                 (if (not-empty header-text)
                                     (if (= header-text "Titles")
-                                        
-                                        ; Persit first link in this section
-                                        (merge section-title-link
-                                             (first (html/select (first section-list) [:td.result_text :a]))))))))
+                                        (let [first-title-link
+                                                (first (html/select (first section-list) [:td.result_text :a]))]
+                                            (debug "- First title link:", first-title-link, "\n")
+                                            
+                                            ; Persit first link in this section
+                                            (merge section-title-link first-title-link)))))))
                     (rest section-list)))
             section-title-link)))
 
@@ -191,14 +195,6 @@
                             ; Attempt grab correct link
                             (select-cast-crew-link see-more-links))))))))
 
-(defn parse-genre
-    "Parse the provided sequence of anchor links and produce the genre string"
-    [genre-sequence genre-string]
-    (str genre-string
-        (if (not-empty genre-sequence)
-            (parse-genre (rest genre-sequence)
-                         (str (first (:content (first genre-sequence))) " ")))))
-
 (defn construct-title
     "Construct a title string based on the provided parsed page content"
     [page-content]
@@ -236,17 +232,37 @@
             (if (not-empty infobar-span)
                 (:title (:attrs (first infobar-span)))))))
 
+(defn select-genres-from-span-list
+    "Attempts to select all of the span tags which contain a genre string"
+    [span-list]
+    (loop [genre-string ""
+           item-list span-list]
+        (if (not-empty item-list)
+            ; Recurrsively look for span with genre attributes
+            (recur
+                (let [item (first item-list)]
+                    (let [type (:itemprop (:attrs item))]
+                        (if (= "genre" type)
+                            (let [genre (first (:content item))]
+                                (debug "-----", genre)
+                                (str (str genre-string " ") genre))
+                            genre-string)))
+                (rest item-list))
+            genre-string)))
+
 (defn construct-genre
     "Construct a genre string based on the provided parsed page content"
     [page-content]
     (if (not-empty page-content)
         
-        ; Select title attribute from first infobar span element
-        (let [infobar-anchor (html/select page-content [:div.infobar :a])]
-            (if (not-empty infobar-anchor)
-                
-                ; Don't know why I drop the last??
-                (ccstring/trim (parse-genre (drop-last infobar-anchor) ""))))))
+        ; Select all itemprop span tags
+        (let [itemprops (html/select page-content [:span.itemprop])]
+            (debug "- Looking for genres...")
+            
+            (if (not-empty itemprops)
+                (let [genre-string (select-genres-from-span-list itemprops)]
+                    (if (not-empty genre-string)
+                        (ccstring/trim genre-string)))))))
 
 (defn construct-release-date
     "Construct a release date string based on the provided parsed page content"

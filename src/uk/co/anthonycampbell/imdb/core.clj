@@ -40,7 +40,7 @@
     (if (not-empty query-term)
         (let [url (str query-url (encode-url query-term))]
             (debug "Searching for", (str "'", query-term, "'"))
-            (debug "- url:", url, "\n")
+            (debug "- URL:", url, "\n")
             
             ; Search for provided title
             (let [search-response (body-resource url)]
@@ -62,6 +62,9 @@
                 
                 ; Open and parse title page
                 (let [page-content (body-resource title-url)]
+                    (debug "Parse title page...")
+                    (debug "- URL:", title-url)
+                    
                     (apply-base-url (update-media-struct page-content search-response) base-url))))))
 
 (defn parse-cast
@@ -107,16 +110,17 @@
      Example usage:
          clojure-imdb-parser.jar \"Title Name\"
          clojure-imdb-parser.jar \"Title Name\" output-file.txt
-         clojure-imdb-parser.jar \"Title Name\" output-file.txt DEBUG
+         clojure-imdb-parser.jar \"Title Name\" output-file.txt true
     "
     [& args]
     (setup-logging)
     
     (if (not-empty args)
         (if (> (count args) 2)
-            (set-loggers! "uk.co.anthonycampbell.imdb" 
-                          { :level :debug
-                            :pattern "%d{yyyy-MM-dd hh:mm:ss} %m%n" })))
+            (if (= (nth args 2) true)
+                (set-loggers! "uk.co.anthonycampbell.imdb" 
+                              { :level :debug
+                                :pattern "%d{yyyy-MM-dd hh:mm:ss} %m%n" }))))
     
     (if (not-empty args)
         (let [complete-media-struct (parse (first args) (second args))]
