@@ -264,16 +264,38 @@
                     (if (not-empty genre-string)
                         (ccstring/trim genre-string)))))))
 
+(defn select-release-date-from-meta-list
+    "Attempts to select all of the tags which contain a datePublished attribute"
+    [list]
+    (loop [date-string ""
+           item-list list]
+        (if (not-empty item-list)
+            ; Recurrsively look for meta tag with date published attributes
+            (recur
+                (let [item (first item-list)]
+                    (let [link-title (:title (:attrs item))]
+                        
+                        (if (= "See all release dates" link-title)
+                            (let [release-date (first (:content item))]
+                                (debug "-----", release-date)
+                                (str (str date-string " ") release-date))
+                            date-string)))
+                (rest item-list))
+            date-string)))
+
 (defn construct-release-date
     "Construct a release date string based on the provided parsed page content"
     [page-content]
     (if (not-empty page-content)
         
         ; Select title attribute from first infobar span element
-        (let [infobar-anchor (html/select page-content [:div.infobar :a])]
-            (if (not-empty infobar-anchor)
-                (ccstring/trim (nth (re-find #"([a-zA-Z0-9  ]+)(\(UK\))?"
-                    (ccstring/trim (first (:content (last infobar-anchor))))) 1))))))
+        (let [meta-list (html/select page-content [:span :a])]
+            (debug "- Looking for release dates...")
+            
+            (if (not-empty meta-list)
+                (let [release-date-string (select-release-date-from-meta-list meta-list)]
+                    (if (not-empty release-date-string)
+                        (ccstring/trim release-date-string)))))))
 
 (defn construct-description
     "Construct a description string based on the provided parsed page content"
