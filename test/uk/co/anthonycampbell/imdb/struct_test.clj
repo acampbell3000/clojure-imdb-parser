@@ -15,7 +15,8 @@
 
 (ns uk.co.anthonycampbell.imdb.struct-test
     (:use [clojure.test :as test]
-        [uk.co.anthonycampbell.imdb.struct :as struct]))
+          [uk.co.anthonycampbell.imdb.struct :as struct]
+          [uk.co.anthonycampbell.imdb.log :as log]))
 
 (defn trim-descriptions
     "Iterating through test data is easier than writing a lot of unit tests!"
@@ -83,4 +84,5 @@
 (deftest construct-descriptions
     (trim-descriptions test-data))
 
+(setup-logging)
 (run-tests)

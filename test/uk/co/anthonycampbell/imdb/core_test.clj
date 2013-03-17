@@ -15,7 +15,8 @@
 
 (ns uk.co.anthonycampbell.imdb.core-test
     (:use [clojure.test :as test]
-        [uk.co.anthonycampbell.imdb.core :as core]))
+          [uk.co.anthonycampbell.imdb.core :as core]
+          [uk.co.anthonycampbell.imdb.log :as log]))
 
 (defn do-integration-test
     "Iterating through test data is easier than writing a lot of unit tests!"
@@ -53,4 +54,5 @@
 (deftest test-tv-titles
     (do-integration-test test-title-tv-data))
 
+(setup-logging)
 (run-tests)

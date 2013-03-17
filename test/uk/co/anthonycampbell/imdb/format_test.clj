@@ -15,7 +15,8 @@
 
 (ns uk.co.anthonycampbell.imdb.format-test
     (:use [clojure.test :as test]
-        [uk.co.anthonycampbell.imdb.format :as format]))
+          [uk.co.anthonycampbell.imdb.format :as format]
+          [uk.co.anthonycampbell.imdb.log :as log]))
 
 ; Test data
 (def genre-test-data
@@ -50,4 +51,5 @@
                 
                 (rest test-data)))))
 
+(setup-logging)
 (run-tests)

@@ -15,11 +15,12 @@
 
 (ns uk.co.anthonycampbell.imdb.parser-test
     (:use [clojure.test :as test]
-        [uk.co.anthonycampbell.imdb.request :as request]
-        [uk.co.anthonycampbell.imdb.cast-parser :as cast-parser]
-        [uk.co.anthonycampbell.imdb.parser :as parser]
-        [uk.co.anthonycampbell.imdb.struct :as struct]
-        [uk.co.anthonycampbell.imdb.core :as core]))
+          [uk.co.anthonycampbell.imdb.request :as request]
+          [uk.co.anthonycampbell.imdb.cast-parser :as cast-parser]
+          [uk.co.anthonycampbell.imdb.parser :as parser]
+          [uk.co.anthonycampbell.imdb.struct :as struct]
+          [uk.co.anthonycampbell.imdb.core :as core]
+          [uk.co.anthonycampbell.imdb.log :as log]))
 
 (def test-url "http://www.imdb.com")
 (def test-query-url "http://www.imdb.com/find?s=all&q=clash%20of%20the%20titans")
@@ -72,66 +73,5 @@
                            (select-title-from-results (body-resource test-query-url))
                            test-url))))))
 
-(deftest check-parse-title-main-details
-    (testing
-        "Ensure we can successfully parse the main details from the title page."
-        (is (not (= "" (parse-title-main-details (body-resource test-query-url)))))))
-
-(deftest check-construct-classification
-    (testing
-        "Ensure we successfully construct classification string from parsed title page."
-        (is (= "12A"
-               (construct-classification
-                   (parse-title-main-details (body-resource test-title-url)))))))
-
-(deftest check-parse-genre
-    (testing
-        "Ensure we can successfully parse the main details from the title page."
-        (is (not (= ""
-                    (parse-genre
-                        (parse-title-main-details (body-resource test-title-url))
-                        ""))))))
-
-(deftest check-construct-genre
-    (testing
-        "Ensure we successfully construct genre string from parsed title page."
-        (is (= "Action Adventure Fantasy"
-               (construct-genre
-                   (parse-title-main-details (body-resource test-title-url)))))))
-
-(deftest check-construct-title
-    (testing
-        "Ensure we successfully construct a title string from parsed title page."
-        (is (= "Clash of the Titans"
-               (construct-title
-                   (parse-title-main-details (body-resource test-title-url)))))))
-
-(deftest check-construct-href
-    (testing
-        "Ensure we successfully construct a page reference string from parsed title page."
-        (is (= "http://www.imdb.com/title/tt0800320/"
-               (construct-href
-                   (body-resource test-title-url))))))
-
-(deftest check-construct-release-date
-    (testing
-        "Ensure we successfully construct a release date string from parsed title page."
-        (is (= "2 April 2010"
-               (construct-release-date
-                   (parse-title-main-details (body-resource test-title-url)))))))
-
-(deftest check-construct-description
-    (testing
-        "Ensure we successfully construct a description string from parsed title page."
-        (is (= "Perseus, mortal son of Zeus, battles the minions of the underworld to stop them from conquering the Earth and the heavens."
-               (construct-description
-                   (parse-title-main-details (body-resource test-title-url)))))))
-
-(deftest check-update-media-struct
-    (testing
-        "Ensure we successfully construct genre string from parsed page details."
-        (is (not (nil? (update-media-struct
-                           (parse-title-main-details (body-resource test-title-url))
-                           nil))))))
-
+(setup-logging)
 (run-tests)

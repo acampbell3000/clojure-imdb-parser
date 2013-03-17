@@ -20,17 +20,12 @@
     (:use uk.co.anthonycampbell.imdb.parser)
     (:use uk.co.anthonycampbell.imdb.cast-parser)
     (:use uk.co.anthonycampbell.imdb.format)
+    (:use uk.co.anthonycampbell.imdb.log)
     (:use clojure.tools.logging)
     (:use clj-logging-config.log4j))
 
 (def base-url "http://www.imdb.com")
 (def query-url (str base-url "/find?s=all&q="))
-
-(defn setup-logging
-    "Prepare log4j root logger with with console appender set to level WARN"
-    []
-    (org.apache.log4j.BasicConfigurator/configure)
-    (.setLevel (org.apache.log4j.Logger/getRootLogger) (org.apache.log4j.Level/WARN)))
 
 (defn perform-search
     "Takes the provided query string and performs a search for the title on IMDB"
