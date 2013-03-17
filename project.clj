@@ -1,4 +1,4 @@
-(defproject clojure-imdb-parser "1.0.3"
+(defproject clojure-imdb-parser "1.0.4"
     :description "Simple project which retrieves media information from IMDB with Clojure"
     :url "https://github.com/acampbell3000/clojure-imdb-parser"
     

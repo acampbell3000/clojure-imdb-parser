@@ -57,7 +57,7 @@
                                     (if (= header-text "Titles")
                                         (let [first-title-link
                                                 (first (html/select (first section-list) [:td.result_text :a]))]
-                                            (debug "----", first-title-link, "\n")
+                                            (debug "----" first-title-link, "\n")
                                             
                                             ; Persit first link in this section
                                             (merge section-title-link first-title-link)))))))
@@ -173,7 +173,7 @@
                     (let [type (:itemprop (:attrs item))]
                         (if (= "genre" type)
                             (let [genre (first (:content item))]
-                                (debug "----", genre)
+                                (debug "----" genre)
                                 
                                 (str (str genre-string " ") genre))
                             genre-string)))
@@ -207,7 +207,7 @@
                         
                         (if (= "See all release dates" link-title)
                             (let [release-date (first (:content item))]
-                                (debug "----", release-date)
+                                (debug "----" release-date)
                                 
                                 (str (str date-string " ") release-date))
                             date-string)))
@@ -297,7 +297,7 @@
                     ; Extract first company
                     (let [production-company-link (html/select (first list) [:a])]
                         (let [production-company (first (:content (first production-company-link)))]
-                            (debug "----", production-company)
+                            (debug "----" production-company)
                             
                             (if (not-empty production-company)
                                 (if (not-empty (html/select production-company [:span]))

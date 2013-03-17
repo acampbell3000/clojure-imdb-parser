@@ -8,6 +8,18 @@ Potential improvements:
 - Ability to perhaps just output JSON.
 - Clearer direction of control in the parser namespace.
 
+Release notes 1.0.5 (TBA)
+----------------------------------------
+
+
+Release notes 1.0.4 (17th March 2013)
+----------------------------------------
+
+- Fix parser with recent IMDB changes.
+- Introduce log3j framework.
+- Update verbosity flag to make use of log4j statements.
+- Remove some bloat functions.
+
 Release notes 1.0.3 (5th February 2013)
 ----------------------------------------
 
