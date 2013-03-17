@@ -1,4 +1,4 @@
-VERSION: 1.0.5
+VERSION: 1.0.6
 
 Dependencies:
 - JVM installed (developed against 1.6).
@@ -7,6 +7,10 @@ Potential improvements:
 - Update Python script to support Windows.
 - Ability to perhaps just output JSON.
 - Clearer direction of control in the parser namespace.
+
+Release notes 1.0.6 (TBA)
+----------------------------------------
+
 
 Release notes 1.0.5 (17th March 2013)
 ----------------------------------------
