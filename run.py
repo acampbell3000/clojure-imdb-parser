@@ -115,13 +115,13 @@ def main():
 
         try:
             # Execute the parser
-            process = subprocess.Popen(["java", "-jar", latest_jar, query_term, output_file, verbose],
+            process = subprocess.Popen(["java", "-jar", latest_jar, query_term, output_file, str(verbose)],
                 stdout=subprocess.PIPE)
             output, stderr = process.communicate()
             process.wait()
 
         except exceptions.Exception as error:
-            print "\n    Unable to execute clojure-imdb-parser!"
+            print "\n    Unable to execute clojure-imdb-parser.jar!"
             print "\n    " + str(error)
             sys.exit(1)
 

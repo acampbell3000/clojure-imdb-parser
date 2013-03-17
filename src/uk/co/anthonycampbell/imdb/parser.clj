@@ -57,27 +57,54 @@
                                     (if (= header-text "Titles")
                                         (let [first-title-link
                                                 (first (html/select (first section-list) [:td.result_text :a]))]
-                                            (debug "- First title link:", first-title-link, "\n")
+                                            (debug "----", first-title-link, "\n")
                                             
                                             ; Persit first link in this section
                                             (merge section-title-link first-title-link)))))))
                     (rest section-list)))
             section-title-link)))
 
-(defn parse-title-main-details
-    "Selects the main information from the selected title page"
+(defn construct-title
+    "Construct a title string based on the provided parsed page content"
     [page-content]
-    (html/select page-content
-        [:html :body :div#wrapper :div#root :div#pagecontent :div#content-2-wide
-         :div#maindetails_center_top :div.article.title-overview :div#title-overview-widget
-         :table#title-overview-widget-layout :tr :td#overview-top]))
+    (if (not-empty page-content)
+        (let [h1-header (html/select page-content [:h1.header])]
+            (debug "- Looking for title name...")
+            
+            (if (not-empty h1-header)
+                (let [h1-header-text (ccstring/trim (first (:content (first h1-header))))]
+                    (debug "----" h1-header-text)
+                    h1-header-text)))))
 
-(defn parse-title-extended-details
-    "Selects the extended information from the selected title page"
+(defn select-cast-crew-link
+    "Attempts to select the 'see more case / crew' link from the provided list."
+    [list]
+    (if (not-empty list)
+        (let [link (first list)]
+            (if (not-empty link)
+                
+                ; Right anchor link?
+                (if (= (first (:content link)) "Full cast and crew")
+                    (let [match (ccstring/trim (:href (:attrs link)))]
+                        ; Match!
+                        (debug "----" match)
+                        match)
+                    
+                    ; Next link
+                    (select-cast-crew-link (rest list)))))))
+
+(defn search-for-cast-url-within-page-content
+    "Parse the provided page contents and looks for the link to the cast and crew page."
     [page-content]
-    (html/select page-content
-        [:html :body :div#wrapper :div#root :div#pagecontent :div#content-2-wide
-         :div#maindetails_center_bottom :div.article]))
+    (if (not-empty page-content)
+        (let [see-more-div (html/select page-content [:div.see-more])]
+            (if (not-empty see-more-div)
+                
+                ; Find each link inside this DIV
+                (let [see-more-links (html/select see-more-div [:a])]
+                    
+                    ; Attempt grab correct link
+                    (select-cast-crew-link see-more-links))))))
 
 (defn select-href-from-link
     "Attempts to determine the title's URL from the available 'canonical' head link"
@@ -92,58 +119,22 @@
                 (let [link-rel (:rel (:attrs link))]
                     (if (not-empty link-rel)
                         (if (= link-rel "canonical")
-                            ; Match!
-                            (ccstring/trim (:href (:attrs link)))
+                            (let [match (ccstring/trim (:href (:attrs link)))]
+                                ; Match!
+                                (debug "----" match)
+                                match)
                             
                             ; Next link
                             (select-href-from-link (rest head-links)))))))))
-
-(defn select-cast-crew-link
-    "Attempts to select the 'see more case / crew' link from the provided list."
-    [page-content]
-    (if (not-empty page-content)
-        (let [link (first page-content)]
-            (if (not-empty link)
-                ; Right anchor link?
-                (if (= (first (:content link)) "Full cast and crew")
-                    ; Match!
-                    (ccstring/trim (:href (:attrs link)))
-                    
-                    ; Next link
-                    (select-cast-crew-link (rest page-content)))))))
-
-(defn parse-cast-crew-url
-    "Parse the provided page contents and looks for the link to the cast and crew page."
-    [page-content]
-    (if (not-empty page-content)
-        (let [extended-details (parse-title-extended-details page-content)]
-            (if (not-empty extended-details)
-            
-                ; Find ALL 'see-more' DIVs
-                (let [see-more-div (html/select extended-details [:div.see-more])]
-                    (if (not-empty see-more-div)
-                        
-                        ; Find each link inside this DIV
-                        (let [see-more-links (html/select see-more-div [:a])]
-                            
-                            ; Attempt grab correct link
-                            (select-cast-crew-link see-more-links))))))))
-
-(defn construct-title
-    "Construct a title string based on the provided parsed page content"
-    [page-content]
-    (if (not-empty page-content)
-        (let [h1-header (html/select page-content [:h1.header])]
-            (if (not-empty h1-header)
-                (ccstring/trim (first (:content (first h1-header))))))))
 
 (defn construct-href
     "Construct a href string based on the provided parsed page content"
     [page-content]
     (if (not-empty page-content)
-        
         ; Let's try and get href from 'canonical' link
         (let [head-links (html/select page-content [:head :link])]
+            (debug "- Looking for title URL...")
+            
             (if (not-empty head-links)
                 (select-href-from-link head-links)))))
 
@@ -152,19 +143,23 @@
     [page-content]
     (if (not-empty page-content)
         (let [title-href (construct-href page-content)]
+            (debug "- Looking for cast URL...")
             
             (if (not-empty title-href)
-                (str title-href (parse-cast-crew-url page-content))))))
+                (str title-href (search-for-cast-url-within-page-content page-content))))))
 
 (defn construct-classification
     "Construct a classification string based on the provided parsed page content"
     [page-content]
     (if (not-empty page-content)
-        
         ; Select title attribute from first infobar span element
         (let [infobar-span (html/select page-content [:div.infobar :span])]
+            (debug "- Looking for classification...")
+            
             (if (not-empty infobar-span)
-                (:title (:attrs (first infobar-span)))))))
+                (let [classification (:title (:attrs (first infobar-span)))]
+                    (debug "----" classification)
+                    classification)))))
 
 (defn select-genres-from-list
     "Attempts to select all of the span tags which contain a genre string"
@@ -233,20 +228,29 @@
                     (if (not-empty release-date-string)
                         (ccstring/trim release-date-string)))))))
 
+
+(defn search-for-description-within-list
+    "Searches through all of the provided paragraphs until we find the short
+     description. The selects the first non-empty paragraph available."
+    [list]
+    (if (not-empty list)
+        (let [paragraph-content (:content (first list))]
+            (if (not-empty paragraph-content)
+                (let [paragraph-content-text (ccstring/trim (first paragraph-content))]
+                    (debug "----" paragraph-content-text)
+                    paragraph-content-text)
+                    
+                    ; Next paragraph
+                    (search-for-description-within-list (rest list))))))
+
 (defn construct-description
     "Construct a description string based on the provided parsed page content"
     [page-content]
     (if (not-empty page-content)
-        
-        ; Select text from first non-empty paragraph
-        (let [paragraph (html/select page-content [:p])]
-            (if (not-empty paragraph)
-                (let [paragraph-content (:content (first paragraph))]
-                    (if (not-empty paragraph-content)
-                        (ccstring/trim (first paragraph-content))
-                        
-                        ; Next paragraph
-                        (construct-description (rest paragraph))))))))
+        (let [paragraphs (html/select page-content [:p])]
+            (debug "- Looking for description...")
+            
+            (search-for-description-within-list paragraphs))))
 
 (defn search-for-long-description-within-list
     "Searches through all of the provided title DIV sub sections until we find the

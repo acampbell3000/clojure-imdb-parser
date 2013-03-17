@@ -79,11 +79,11 @@
             (if (not-empty cast-url)
                 (let [cast-page-content (body-resource cast-url)]
                     (debug "Parse cast page...")
-                    (debug "- URL:", cast-url)
+                    (debug "- URL:" cast-url)
                     
                     (if (not-empty cast-page-content)
                         ; Parse cast page
-                      (update-media-struct cast-page-content, media-struct)))))))
+                        (update-media-struct cast-page-content, media-struct)))))))
 
 (defn parse
     "Runs the parsers and outputs a media struct. If specified the struct
@@ -119,7 +119,7 @@
     
     (if (not-empty args)
         (if (> (count args) 2)
-            (if (= (nth args 2) true)
+            (if (= (clojure.string/lower-case (nth args 2)) "true")
                 (set-loggers! "uk.co.anthonycampbell.imdb" 
                               { :level :debug
                                 :pattern "%d{yyyy-MM-dd hh:mm:ss} %m%n" }))))
@@ -127,5 +127,3 @@
     (if (not-empty args)
         (let [complete-media-struct (parse (first args) (second args))]
             (println complete-media-struct))))
-
-(-main "Doom" "" true)
