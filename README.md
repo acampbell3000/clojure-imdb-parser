@@ -4,7 +4,7 @@ IMDB content parser experiment using Clojure.
 
 ### License
 
-Copyright 2012 © Anthony Campbell
+Copyright 2013 © Anthony Campbell
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

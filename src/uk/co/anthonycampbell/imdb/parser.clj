@@ -84,7 +84,7 @@
             (if (not-empty link)
                 
                 ; Right anchor link?
-                (if (= (first (:content link)) "Full cast and crew")
+                (if (= (first (:content link)) "See full cast")
                     (let [match (ccstring/trim (:href (:attrs link)))]
                         ; Match!
                         (debug "----" match)
